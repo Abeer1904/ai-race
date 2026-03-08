@@ -1,0 +1,146 @@
+:root {
+  --amber:      #E8AA3D;
+  --teal:       #4D696D;
+  --cream:      #EAE5D0;
+  --rust:       #AF4F37;
+  --ink:        #1A1A1A;
+  --ink-mid:    #555;
+  --ink-muted:  #777;
+  --ink-faint:  #999;
+  --bar-bg:     #c4c4c4;
+  --border:     #d4d4d4;
+  --white:      #ffffff;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { min-height: 100%; background: var(--white); color: var(--ink); }
+body { font-family: 'Inter', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+
+/* ── Layout ── */
+.screen { min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 64px 24px 96px; animation: fadeUp 0.3s ease; }
+.inner  { width: 100%; max-width: 580px; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Month tracker ── */
+.month-tracker { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 12px; }
+.month-label   { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--ink-faint); white-space: nowrap; flex-shrink: 0; }
+.bar-wrap      { flex: 1; height: 2px; background: var(--bar-bg); overflow: hidden; }
+.bar-fill      { height: 100%; background: var(--ink); transition: width 0.5s ease; }
+.bar-fill.amber  { background: var(--amber); }
+.bar-fill.danger { background: var(--rust); }
+.month-count   { font-size: 12px; font-weight: 500; color: var(--ink-muted); white-space: nowrap; flex-shrink: 0; font-variant-numeric: tabular-nums; }
+.month-count.danger { color: var(--rust); }
+
+/* ── Dimension bars ── */
+.dim-bars      { padding: 12px 0 14px; border-bottom: 1px solid var(--border); margin-bottom: 32px; }
+.dim-row       { display: flex; align-items: center; gap: 10px; margin-bottom: 7px; }
+.dim-row:last-child { margin-bottom: 0; }
+.dim-label     { font-size: 9px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-faint); width: 76px; flex-shrink: 0; }
+.dim-bar-wrap  { flex: 1; height: 2px; background: var(--bar-bg); overflow: hidden; }
+.dim-bar-fill  { height: 100%; background: var(--amber); transition: width 1s ease; }
+
+/* ── Timer ── */
+.timer-row     { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.timer-label   { font-size: 10px; color: var(--ink-faint); letter-spacing: 0.04em; }
+.timer-secs    { font-size: 10px; font-weight: 800; color: var(--ink-faint); font-variant-numeric: tabular-nums; transition: color 0.3s; }
+.timer-secs.urgent { color: var(--rust); }
+.timer-bar-wrap { height: 2px; background: var(--bar-bg); margin-bottom: 32px; overflow: hidden; }
+.timer-bar     { height: 100%; background: var(--amber); transition: width 1s linear; }
+.timer-bar.urgent { background: var(--rust); }
+
+/* ── Option cards ── */
+.options       { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+.option-card   { border: 1px solid var(--border); padding: 20px 22px; cursor: pointer; transition: border-color 0.12s, background 0.12s; }
+.option-card:hover  { border-color: var(--amber); background: #FFFCF2; }
+.option-card:active { background: #FFF6DB; }
+.opt-letter    { font-size: 9px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber); margin-bottom: 7px; }
+.opt-title     { font-size: 15px; font-weight: 600; color: var(--ink); margin-bottom: 8px; line-height: 1.35; }
+.opt-desc      { font-size: 13px; line-height: 1.6; color: var(--ink-mid); }
+
+/* ── Progress dots ── */
+.progress-dots { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 24px; }
+.dot           { width: 7px; height: 7px; border-radius: 50%; background: var(--border); transition: background 0.2s; }
+.dot.current   { background: var(--amber); }
+.dot.done-A    { background: var(--teal); }
+.dot.done-B    { background: var(--ink-muted); }
+.dot.done-C    { background: var(--ink-faint); }
+
+/* ── Buttons ── */
+.btn { display: inline-block; padding: 14px 28px; border: 1px solid var(--ink); background: var(--white); color: var(--ink); font-family: 'Inter', system-ui, sans-serif; font-size: 11px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-decoration: none; transition: background 0.14s, color 0.14s, border-color 0.14s; text-align: center; }
+.btn:hover     { background: var(--amber); color: var(--ink); border-color: var(--amber); }
+.btn-primary   { background: var(--ink); color: var(--white); }
+.btn-primary:hover { background: var(--amber); color: var(--ink); border-color: var(--amber); }
+.btn-full      { width: 100%; padding: 18px; display: block; }
+
+/* ── Divider ── */
+.divider       { width: 32px; height: 2px; background: var(--amber); margin: 28px 0; }
+
+/* ── Text styles ── */
+.situation-intro { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 18px; font-style: italic; color: var(--teal); line-height: 1.65; margin-bottom: 20px; }
+.situation       { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 20px; line-height: 1.7; color: var(--ink); margin-bottom: 28px; }
+
+/* ── Intro ── */
+.game-title   { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 52px; font-weight: 400; letter-spacing: 0.04em; color: var(--ink); line-height: 1; margin-top: 28px; margin-bottom: 4px; }
+.game-sub     { font-size: 9px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 52px; }
+.intro-body   { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 20px; line-height: 1.7; color: var(--ink); margin-bottom: 18px; }
+.intro-italic { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 20px; font-style: italic; color: var(--teal); line-height: 1.65; margin-bottom: 48px; }
+.intro-note   { font-size: 10px; color: var(--ink-faint); margin-top: 16px; text-align: center; line-height: 1.8; letter-spacing: 0.04em; }
+
+/* ── Labels ── */
+.label-amber  { font-size: 9px; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; color: var(--amber); }
+.label-teal   { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--teal); }
+.label-muted  { font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-faint); }
+.dec-counter  { font-size: 9px; font-weight: 500; letter-spacing: 0.18em; text-transform: uppercase; color: var(--border); margin-bottom: 4px; }
+
+/* ── Consequence ── */
+.choice-badge      { font-size: 9px; font-weight: 800; letter-spacing: 0.2em; text-transform: uppercase; color: var(--amber); margin-bottom: 6px; }
+.choice-title      { font-size: 20px; font-weight: 600; color: var(--ink); margin-bottom: 26px; line-height: 1.3; }
+.consequence-text  { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 21px; line-height: 1.75; color: var(--ink); margin-bottom: 20px; }
+.score-delta       { font-size: 11px; color: var(--ink-faint); margin-bottom: 18px; line-height: 1.9; }
+.months-note       { font-size: 12px; color: var(--ink-faint); font-style: italic; margin-bottom: 32px; line-height: 1.5; }
+.months-note .danger { color: var(--rust); font-style: normal; font-weight: 600; }
+.random-notice     { font-size: 10px; color: var(--rust); letter-spacing: 0.1em; margin-bottom: 12px; font-weight: 800; }
+
+/* ── Event (what-if) card ── */
+.event-wrap    { border-top: 3px solid var(--amber); padding-top: 32px; }
+.event-from    { font-size: 9px; font-weight: 800; letter-spacing: 0.26em; text-transform: uppercase; color: var(--amber); margin-bottom: 16px; }
+.event-headline { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 34px; font-weight: 500; line-height: 1.2; color: var(--ink); margin-bottom: 24px; }
+.event-body    { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 20px; line-height: 1.75; color: var(--ink-mid); margin-bottom: 24px; }
+.event-subtext { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 17px; font-style: italic; color: var(--teal); margin-bottom: 28px; }
+.event-impact  { font-size: 10px; font-weight: 800; letter-spacing: 0.1em; color: var(--rust); padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 36px; }
+
+/* ── Summit ── */
+.summit-eyebrow { font-size: 9px; font-weight: 800; letter-spacing: 0.24em; text-transform: uppercase; color: var(--amber); margin-bottom: 8px; }
+.summit-stat    { font-size: 11px; color: var(--ink-faint); font-style: italic; margin-bottom: 36px; }
+.summit-title   { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 36px; line-height: 1.25; color: var(--ink); margin-bottom: 28px; }
+.summit-body    { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 20px; line-height: 1.75; color: var(--ink-mid); margin-bottom: 22px; }
+.score-bar-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--border); }
+.score-bar-row  { margin-bottom: 12px; }
+.score-bar-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+.score-bar-label { font-size: 9px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-muted); }
+.score-bar-pct  { font-size: 9px; color: var(--ink-faint); font-variant-numeric: tabular-nums; }
+
+/* ── Political ── */
+.political-name { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 36px; color: var(--ink); margin-bottom: 8px; line-height: 1.2; }
+.political-sub  { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 20px; font-style: italic; color: var(--teal); margin-bottom: 28px; }
+.political-body { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 19px; line-height: 1.72; color: var(--ink-mid); margin-bottom: 32px; }
+.choice-counts  { display: flex; gap: 28px; margin-bottom: 44px; font-size: 12px; color: var(--ink-faint); }
+.choice-counts span { font-weight: 800; }
+.count-A span   { color: var(--teal); }
+.count-B span   { color: var(--ink-muted); }
+.count-C span   { color: var(--ink-faint); }
+
+/* ── Share ── */
+.share-text-box { font-family: 'Inter', system-ui, sans-serif; font-size: 13px; line-height: 1.65; color: var(--ink-mid); background: #FAFAF8; border: 1px solid var(--border); padding: 24px; margin-bottom: 22px; white-space: pre-wrap; word-wrap: break-word; }
+.share-actions  { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 48px; }
+
+/* ── Footer credits ── */
+.footer-credits { padding-top: 32px; border-top: 1px solid var(--border); }
+.giz-note       { font-family: 'EB Garamond', Garamond, Georgia, serif; font-size: 16px; font-style: italic; color: var(--ink-mid); line-height: 1.65; margin-bottom: 16px; }
+.copyright-line { font-size: 10px; letter-spacing: 0.08em; color: var(--ink-faint); line-height: 1.9; }
+.copyright-line a { color: var(--teal); text-decoration: none; }
+.copyright-line a:hover { color: var(--amber); }
+
+/* ── Logo SVG ── */
+.logo-wrap { display: block; margin-bottom: 0; }
+.logo-wrap svg { display: block; }
