@@ -1,16 +1,539 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Race · The Civic Games Lab</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500;600;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>civic.games — Civic Games Lab</title>
+  <meta name="description" content="Browser-playable governance simulations. Each game is a hard decision. No right answers.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+/* ── Reset & tokens ─────────────────────────────────────── */
+:root {
+  --amber:     #E8AA3D;
+  --teal:      #4D696D;
+  --cream:     #EAE5D0;
+  --rust:      #AF4F37;
+  --ink:       #1A1A1A;
+  --ink-mid:   #555;
+  --ink-muted: #777;
+  --ink-faint: #999;
+  --border:    #d4d4d4;
+  --white:     #ffffff;
+  --bg:        #F5F2EB;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-snap-type: y mandatory; overflow-y: scroll; scroll-behavior: smooth; }
+body { font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased; background: var(--ink); }
+
+/* ── NAV ─────────────────────────────────────────────────── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  background: var(--ink);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 0 32px;
+  height: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+.nav-logo { display: flex; align-items: center; }
+.nav-logo svg { display: block; }
+.nav-right {
+  display: flex; align-items: center; gap: 28px;
+}
+.nav-link {
+  font-size: 10px; font-weight: 700; letter-spacing: .18em;
+  text-transform: uppercase; color: rgba(234,229,208,.4);
+  text-decoration: none; transition: color .15s;
+}
+.nav-link:hover { color: var(--amber); }
+.nav-game-count {
+  font-size: 10px; font-weight: 700; letter-spacing: .14em;
+  text-transform: uppercase; color: rgba(234,229,208,.2);
+}
+
+/* ── SCROLL SECTIONS ──────────────────────────────────────── */
+section {
+  scroll-snap-align: start;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  position: relative;
+}
+
+/* ── HERO (first section) ─────────────────────────────────── */
+.hero-section {
+  background: var(--ink);
+  flex-direction: column;
+  justify-content: center;
+  padding: 52px 0 0; /* account for nav */
+}
+.hero-inner {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 64px 64px 80px;
+  max-width: 960px;
+}
+.hero-eyebrow {
+  font-size: 10px; font-weight: 800; letter-spacing: .28em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 24px;
+  display: flex; align-items: center; gap: 10px;
+}
+.hero-eyebrow::before {
+  content: ''; width: 28px; height: 2px; background: var(--amber);
+}
+.hero-title {
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(52px, 8vw, 96px);
+  font-weight: 400; line-height: 1.0;
+  color: var(--cream); letter-spacing: -.01em;
+  margin-bottom: 28px;
+}
+.hero-title em { color: var(--amber); font-style: italic; }
+.hero-body {
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(16px, 2vw, 20px); line-height: 1.7;
+  color: rgba(234,229,208,.55);
+  max-width: 520px; margin-bottom: 48px;
+}
+.hero-cta {
+  display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+}
+.btn-hero {
+  background: var(--amber); color: var(--ink);
+  border: none; padding: 15px 32px;
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 800;
+  letter-spacing: .16em; text-transform: uppercase; cursor: pointer;
+  text-decoration: none; display: inline-block;
+  transition: background .14s;
+}
+.btn-hero:hover { background: #F0BA50; }
+.btn-ghost {
+  background: transparent; color: rgba(234,229,208,.5);
+  border: 1px solid rgba(234,229,208,.2);
+  padding: 14px 28px;
+  font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700;
+  letter-spacing: .14em; text-transform: uppercase; cursor: pointer;
+  text-decoration: none; display: inline-block;
+  transition: color .14s, border-color .14s;
+}
+.btn-ghost:hover { color: var(--cream); border-color: rgba(234,229,208,.5); }
+.hero-scroll-hint {
+  position: absolute; bottom: 32px; left: 64px;
+  font-size: 9px; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: rgba(234,229,208,.2);
+  display: flex; align-items: center; gap: 8px;
+}
+.hero-scroll-hint::after {
+  content: '↓'; font-size: 14px; color: var(--amber); opacity: .6;
+  animation: bounce .9s ease infinite alternate;
+}
+@keyframes bounce { to { transform: translateY(4px); } }
+
+/* ── GAME SECTIONS ────────────────────────────────────────── */
+.game-section {
+  background: var(--bg);
+  padding-top: 52px; /* nav offset */
+}
+
+/* Desktop: two columns */
+@media (min-width: 900px) {
+  .game-section { flex-direction: row; }
+  .game-left {
+    flex: 1;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 64px;
+    border-right: 1px solid var(--border);
+  }
+  .game-right {
+    width: 340px; flex-shrink: 0;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 80px 48px;
+    background: var(--white);
+  }
+}
+/* Mobile: stacked */
+@media (max-width: 899px) {
+  .game-section { flex-direction: column; }
+  .game-left  { padding: 48px 24px 32px; }
+  .game-right { padding: 32px 24px 48px; background: var(--white); border-top: 1px solid var(--border); }
+}
+
+.game-num {
+  font-size: 9px; font-weight: 800; letter-spacing: .24em;
+  text-transform: uppercase; color: var(--ink-faint);
+  margin-bottom: 16px;
+}
+.game-title {
+  font-family: 'EB Garamond', serif;
+  font-size: clamp(36px, 5vw, 56px);
+  font-weight: 400; line-height: 1.05;
+  color: var(--ink); margin-bottom: 8px;
+}
+.game-title em { font-style: italic; color: var(--amber); }
+.game-domain {
+  font-size: 9px; font-weight: 800; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--amber); margin-bottom: 20px;
+}
+.game-hook {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: clamp(16px, 1.8vw, 20px); line-height: 1.65;
+  color: var(--ink-mid); margin-bottom: 28px; max-width: 480px;
+}
+.game-stakes {
+  font-size: 12px; line-height: 1.7; color: var(--ink-muted);
+  padding: 16px 0; border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border); margin-bottom: 32px;
+  max-width: 480px;
+}
+.game-stakes strong { color: var(--ink); font-weight: 700; }
+
+/* right panel */
+.game-meta-label {
+  font-size: 8px; font-weight: 800; letter-spacing: .2em;
+  text-transform: uppercase; color: var(--ink-faint);
+  margin-bottom: 16px;
+  display: flex; align-items: center; gap: 8px;
+}
+.game-meta-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.game-meta-row {
+  display: flex; justify-content: space-between;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.game-meta-row:last-of-type { border-bottom: none; }
+.gm-key   { color: var(--ink-muted); }
+.gm-val   { color: var(--ink); font-weight: 600; text-align: right; }
+.gm-val.amber { color: var(--amber); }
+
+.game-cta { margin-top: 28px; }
+.btn-begin {
+  width: 100%; background: var(--ink); color: var(--white);
+  border: none; padding: 15px; font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; cursor: pointer; text-decoration: none;
+  display: block; text-align: center; transition: background .14s;
+}
+.btn-begin:hover { background: var(--amber); color: var(--ink); }
+
+/* Coming soon variant */
+.game-section.coming-soon { opacity: .65; }
+.game-section.coming-soon .game-title { color: var(--ink-muted); }
+.btn-coming-soon {
+  width: 100%; background: var(--border); color: var(--ink-faint);
+  border: none; padding: 15px; font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 800; letter-spacing: .16em;
+  text-transform: uppercase; cursor: not-allowed; display: block; text-align: center;
+}
+
+/* ── FOOTER SECTION ───────────────────────────────────────── */
+.footer-section {
+  background: var(--ink);
+  scroll-snap-align: start;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 32px;
+  text-align: center;
+  min-height: 50vh;
+}
+.footer-logo { margin-bottom: 32px; }
+.footer-tagline {
+  font-family: 'EB Garamond', serif; font-style: italic;
+  font-size: 20px; color: rgba(234,229,208,.45);
+  max-width: 440px; line-height: 1.65; margin-bottom: 32px;
+}
+.footer-links { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; margin-bottom: 40px; }
+.footer-link {
+  font-size: 9px; font-weight: 800; letter-spacing: .2em;
+  text-transform: uppercase; color: rgba(234,229,208,.3);
+  text-decoration: none; transition: color .14s;
+}
+.footer-link:hover { color: var(--amber); }
+.footer-giz {
+  font-size: 10px; color: rgba(234,229,208,.25);
+  letter-spacing: .06em; line-height: 1.9;
+}
+.footer-giz strong { color: var(--amber); }
+
+/* ── SCROLL INDICATOR DOTS ────────────────────────────────── */
+.scroll-dots {
+  position: fixed; right: 20px; top: 50%; transform: translateY(-50%);
+  display: flex; flex-direction: column; gap: 8px; z-index: 50;
+}
+.sdot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: rgba(255,255,255,.2); cursor: pointer;
+  transition: background .2s, transform .2s;
+}
+.sdot.active { background: var(--amber); transform: scale(1.3); }
+@media (max-width: 899px) { .scroll-dots { display: none; } }
+
+/* ── DIVIDER AMBER ────────────────────────────────────────── */
+.amber-bar { height: 3px; background: var(--amber); width: 40px; margin-bottom: 20px; }
+  </style>
 </head>
 <body>
-<div id="app"></div>
-<script src="js/app.js"></script>
+
+<!-- ── NAV ─────────────────────────────────────────────────── -->
+<nav>
+  <div class="nav-logo">
+    <svg viewBox="265 205 285 185" width="110" height="auto" xmlns="http://www.w3.org/2000/svg">
+      <defs><style>.cls-1{fill:#e8aa3d;}</style></defs>
+      <path class="cls-1" d="M348.68,284c-.83,1-1.07,1.47-1,2,.12.88,1.06,1.44,1.88,1.9a62,62,0,0,0,5.91,2.87q0,8.82,0,17.79.09,14.06.41,27.75l-72.34,0a42.14,42.14,0,0,1,5-19.68,36.22,36.22,0,0,1,6.39-8.78,58,58,0,0,1,16.3-10.32c3.59-1.21,8.77-3.08,14.9-5.76,8-3.49,8.71-4.46,8.72-5.27.05-2.94-8.91-3.33-22-11-7.43-4.35-12.09-8.58-13.67-14.43a18.64,18.64,0,0,1-.55-3l56.95.11.07,19.67a25.27,25.27,0,0,1-2.92,2.7A23.52,23.52,0,0,0,348.68,284Z"/>
+      <path class="cls-1" d="M371.32,217.21v-3.37h23.52v3.37H385v28h-3.8v-28Z"/>
+      <path class="cls-1" d="M404,245.2V213.84h3.79v14h16.72v-14h3.8V245.2h-3.8v-14H407.75v14Z"/>
+      <path class="cls-1" d="M439.1,245.2V213.84H458v3.37H442.9V227.8h14.15v3.37H442.9v10.66h15.37v3.37Z"/>
+      <path class="cls-1" d="M397.46,270.23h-7.65a7,7,0,0,0-.63-2.13,5.17,5.17,0,0,0-1.26-1.62,5.44,5.44,0,0,0-1.84-1,7.29,7.29,0,0,0-2.35-.36,6.8,6.8,0,0,0-3.93,1.12,7,7,0,0,0-2.53,3.23,15.46,15.46,0,0,0,0,10.34,6.51,6.51,0,0,0,6.39,4.24,7.82,7.82,0,0,0,2.29-.32,5.53,5.53,0,0,0,1.82-.95,5,5,0,0,0,1.3-1.51,6.19,6.19,0,0,0,.72-2l7.65.05a11.64,11.64,0,0,1-1.2,4.1,13,13,0,0,1-2.75,3.68,12.76,12.76,0,0,1-4.25,2.64,16.78,16.78,0,0,1-13.35-.89,13.43,13.43,0,0,1-5.31-5.48,18.29,18.29,0,0,1-1.94-8.76,18,18,0,0,1,2-8.77,13.38,13.38,0,0,1,5.34-5.46,15.26,15.26,0,0,1,7.55-1.87,16.83,16.83,0,0,1,5.27.79,12.9,12.9,0,0,1,4.25,2.29,11.89,11.89,0,0,1,3,3.7A13.55,13.55,0,0,1,397.46,270.23Z"/>
+      <path class="cls-1" d="M412.59,258.87v31.35H405V258.87Z"/>
+      <path class="cls-1" d="M427.69,258.87l7,23H435l7-23h8.48l-10.58,31.35H429.79l-10.58-31.35Z"/>
+      <path class="cls-1" d="M464.66,258.87v31.35h-7.58V258.87Z"/>
+      <path class="cls-1" d="M501.1,270.23h-7.65a6.46,6.46,0,0,0-.63-2.13,5.14,5.14,0,0,0-1.25-1.62,5.58,5.58,0,0,0-1.85-1,7.29,7.29,0,0,0-2.35-.36,6.8,6.8,0,0,0-3.93,1.12,7,7,0,0,0-2.52,3.23,15.38,15.38,0,0,0,0,10.34,6.83,6.83,0,0,0,2.53,3.17,6.9,6.9,0,0,0,3.86,1.07,7.77,7.77,0,0,0,2.29-.32,5.69,5.69,0,0,0,1.83-.95,5.13,5.13,0,0,0,1.3-1.51,6.18,6.18,0,0,0,.71-2l7.65.05a11.64,11.64,0,0,1-1.2,4.1,13,13,0,0,1-2.75,3.68,12.76,12.76,0,0,1-4.25,2.64,16.78,16.78,0,0,1-13.35-.89,13.34,13.34,0,0,1-5.3-5.48,18.17,18.17,0,0,1-1.95-8.76,18,18,0,0,1,2-8.77,13.51,13.51,0,0,1,5.34-5.46,15.29,15.29,0,0,1,7.55-1.87,16.78,16.78,0,0,1,5.27.79,13,13,0,0,1,4.26,2.29,11.86,11.86,0,0,1,3,3.7A13.36,13.36,0,0,1,501.1,270.23Z"/>
+      <path class="cls-1" d="M389.58,314.81a5.68,5.68,0,0,0-.77-1.71,5,5,0,0,0-1.24-1.26,5.42,5.42,0,0,0-1.68-.79,7.66,7.66,0,0,0-2.09-.27,7,7,0,0,0-3.94,1.1,7.08,7.08,0,0,0-2.56,3.21,12.8,12.8,0,0,0-.91,5.11,13.37,13.37,0,0,0,.88,5.14,6.59,6.59,0,0,0,6.53,4.37,8.14,8.14,0,0,0,3.53-.69,4.84,4.84,0,0,0,2.2-1.93,5.69,5.69,0,0,0,.75-3l1.41.17h-7.63v-5.53h13.53v4.15a13.85,13.85,0,0,1-1.79,7.21,11.9,11.9,0,0,1-4.9,4.61,15.29,15.29,0,0,1-7.16,1.61,15.63,15.63,0,0,1-7.88-1.94,13.51,13.51,0,0,1-5.3-5.55,18.13,18.13,0,0,1-1.9-8.57,18.92,18.92,0,0,1,1.15-6.85,14.31,14.31,0,0,1,3.21-5.08,13.6,13.6,0,0,1,4.77-3.15,15.77,15.77,0,0,1,5.86-1.08,16.34,16.34,0,0,1,5.08.78,13.92,13.92,0,0,1,4.16,2.21,11.89,11.89,0,0,1,2.95,3.38,11.35,11.35,0,0,1,1.41,4.31Z"/>
+      <path class="cls-1" d="M411.09,335.92H403l10.58-31.36h10.09l10.58,31.36h-8.15l-7.36-23.46h-.25ZM410,323.58h17v5.76H410Z"/>
+      <path class="cls-1" d="M440.82,304.56h9.38l8,19.42h.37l8-19.42h9.39v31.36H468.5V316.66h-.26l-7.53,19.06H456l-7.53-19.17h-.26v19.37h-7.38Z"/>
+      <path class="cls-1" d="M483.86,335.92V304.56h21.87v6.16H491.44v6.43h13.17v6.17H491.44v6.45h14.29v6.15Z"/>
+      <path class="cls-1" d="M530.66,314a3.56,3.56,0,0,0-1.36-2.63,5.42,5.42,0,0,0-3.42-.94,6.71,6.71,0,0,0-2.45.38,3.17,3.17,0,0,0-1.47,1.05,2.61,2.61,0,0,0-.5,1.52,2.13,2.13,0,0,0,.28,1.24,2.83,2.83,0,0,0,.92.94,6.41,6.41,0,0,0,1.46.72,15.64,15.64,0,0,0,1.93.53l2.69.61a19.34,19.34,0,0,1,4.12,1.35,11.24,11.24,0,0,1,3,2,7.79,7.79,0,0,1,1.84,2.68,9.15,9.15,0,0,1,.65,3.4,8.85,8.85,0,0,1-1.51,5.1,9.29,9.29,0,0,1-4.26,3.26,17.85,17.85,0,0,1-6.7,1.13,18.21,18.21,0,0,1-6.86-1.18,9.72,9.72,0,0,1-4.55-3.58,10.81,10.81,0,0,1-1.66-6.08h7.25a4.7,4.7,0,0,0,.82,2.53,4.44,4.44,0,0,0,2,1.53,7.78,7.78,0,0,0,2.93.52,7.21,7.21,0,0,0,2.61-.42,3.73,3.73,0,0,0,1.66-1.14,2.72,2.72,0,0,0,.6-1.69,2.38,2.38,0,0,0-.55-1.52,4.24,4.24,0,0,0-1.65-1.1,17.24,17.24,0,0,0-2.83-.87l-3.27-.76a14.4,14.4,0,0,1-6.42-3,7.16,7.16,0,0,1-2.32-5.66,8.43,8.43,0,0,1,1.56-5.1,10.36,10.36,0,0,1,4.36-3.41,15.62,15.62,0,0,1,6.36-1.23,14.93,14.93,0,0,1,6.33,1.24,9.77,9.77,0,0,1,4.17,3.45,9.21,9.21,0,0,1,1.52,5.15Z"/>
+      <path class="cls-1" d="M371.62,381.19V349.83h3.8v28H390v3.37Z"/>
+      <path class="cls-1" d="M402.36,381.19h-4l11.51-31.36h3.92l11.51,31.36h-4L412,354.79h-.24Zm1.47-12.25h16v3.37h-16Z"/>
+      <path class="cls-1" d="M433.46,381.19V349.83h11a11.51,11.51,0,0,1,5.41,1.13,7.51,7.51,0,0,1,3.17,3,8.62,8.62,0,0,1,1,4.19,7,7,0,0,1-.71,3.34,5.72,5.72,0,0,1-1.87,2.08,8.84,8.84,0,0,1-2.5,1.14v.3a6.18,6.18,0,0,1,2.89,1,7.32,7.32,0,0,1,2.43,2.64,8.25,8.25,0,0,1,1,4.19,8.35,8.35,0,0,1-1.07,4.24,7.39,7.39,0,0,1-3.38,3,14.14,14.14,0,0,1-6,1.1Zm3.8-17.58h7a7,7,0,0,0,3.1-.67,5.46,5.46,0,0,0,2.21-1.9,5.12,5.12,0,0,0,.81-2.88,4.74,4.74,0,0,0-1.44-3.51q-1.43-1.45-4.56-1.45h-7.16Zm0,14.21h7.53q3.72,0,5.29-1.44a4.61,4.61,0,0,0,1.57-3.52,5.67,5.67,0,0,0-.81-2.95,6,6,0,0,0-2.31-2.17,7.31,7.31,0,0,0-3.56-.82h-7.71Z"/>
+    </svg>
+  </div>
+  <div class="nav-right">
+    <a href="#games" class="nav-link">Games</a>
+    <a href="#about" class="nav-link">About</a>
+    <div class="nav-game-count">2 of 6 live</div>
+  </div>
+</nav>
+
+<!-- ── SCROLL DOTS ──────────────────────────────────────────── -->
+<div class="scroll-dots" id="scrollDots">
+  <div class="sdot active" onclick="scrollTo(0)"></div>
+  <div class="sdot" onclick="scrollTo(1)"></div>
+  <div class="sdot" onclick="scrollTo(2)"></div>
+  <div class="sdot" onclick="scrollTo(3)"></div>
+  <div class="sdot" onclick="scrollTo(4)"></div>
+  <div class="sdot" onclick="scrollTo(5)"></div>
+  <div class="sdot" onclick="scrollTo(6)"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     SECTION 0 — HERO
+     ═══════════════════════════════════════════ -->
+<section class="hero-section" id="section-0">
+  <div class="hero-inner">
+    <div class="hero-eyebrow">Civic Games Lab</div>
+    <h1 class="hero-title">civic<em>.</em>games</h1>
+    <p class="hero-body">
+      Browser-playable governance simulations. Each game puts you in a hard seat — Mayor, Advisor, Negotiator. No tutorials. No right answers. 8–10 minutes.
+    </p>
+    <div class="hero-cta">
+      <a href="ai-race/index.html" class="btn-hero">Play AI Race →</a>
+      <a href="#section-1" class="btn-ghost">See all games ↓</a>
+    </div>
+  </div>
+  <div class="hero-scroll-hint">Scroll to explore</div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 1 — AI RACE
+     ═══════════════════════════════════════════ -->
+<section class="game-section" id="section-1">
+  <div class="game-left">
+    <div class="game-num">Game 01 · Live</div>
+    <div class="amber-bar"></div>
+    <h2 class="game-title">AI <em>Race</em></h2>
+    <div class="game-domain">AI Governance · Technology Policy</div>
+    <p class="game-hook">
+      You are the National AI Advisor to the Prime Minister. The global AI race is being decided in the next five years. Countries that don't have an indigenous model, a sovereign compute layer, and a coherent data governance framework will spend the decade paying for someone else's infrastructure on someone else's terms.
+    </p>
+    <div class="game-stakes">
+      <strong>The question:</strong> Do you get a seat at the table — or end up on the menu?
+    </div>
+  </div>
+  <div class="game-right">
+    <div class="game-meta-label">Game details</div>
+    <div class="game-meta-row"><span class="gm-key">Role</span><span class="gm-val">National AI Advisor</span></div>
+    <div class="game-meta-row"><span class="gm-key">Decisions</span><span class="gm-val">15 sub-decisions</span></div>
+    <div class="game-meta-row"><span class="gm-key">Dimensions</span><span class="gm-val">Sovereignty · Legitimacy · Capacity · Sustainability</span></div>
+    <div class="game-meta-row"><span class="gm-key">Play time</span><span class="gm-val amber">8–10 min</span></div>
+    <div class="game-meta-row"><span class="gm-key">Output</span><span class="gm-val">Political profile + radar chart</span></div>
+    <div class="game-cta">
+      <a href="ai-race/index.html" class="btn-begin">Begin →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 2 — ENGINES OF GROWTH
+     ═══════════════════════════════════════════ -->
+<section class="game-section" id="section-2">
+  <div class="game-left">
+    <div class="game-num">Game 02 · Live</div>
+    <div class="amber-bar"></div>
+    <h2 class="game-title">Engines of <em>Growth</em></h2>
+    <div class="game-domain">Industrial Policy · MSME Ecosystems</div>
+    <p class="game-hook">
+      You've just been elected Mayor of Navapur. Unemployment is rising. Your entire campaign ran on one promise — grow local business. You inherit three struggling micro-enterprises and five rounds to turn things around.
+    </p>
+    <div class="game-stakes">
+      <strong>The question:</strong> Can you build a city where small businesses thrive — without going broke keeping them alive?
+    </div>
+  </div>
+  <div class="game-right">
+    <div class="game-meta-label">Game details</div>
+    <div class="game-meta-row"><span class="gm-key">Role</span><span class="gm-val">Mayor of Navapur</span></div>
+    <div class="game-meta-row"><span class="gm-key">Mechanics</span><span class="gm-val">Resource allocation · Ecosystem building</span></div>
+    <div class="game-meta-row"><span class="gm-key">Pillars</span><span class="gm-val">Finance · Workforce · Infra · Innovation · Entrep.</span></div>
+    <div class="game-meta-row"><span class="gm-key">Play time</span><span class="gm-val amber">8–10 min</span></div>
+    <div class="game-meta-row"><span class="gm-key">Rounds</span><span class="gm-val">5</span></div>
+    <div class="game-cta">
+      <a href="engines-of-growth/index.html" class="btn-begin">Begin →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 3 — THE POLL (coming soon)
+     ═══════════════════════════════════════════ -->
+<section class="game-section coming-soon" id="section-3">
+  <div class="game-left">
+    <div class="game-num">Game 03 · Coming soon</div>
+    <div class="amber-bar" style="opacity:.3"></div>
+    <h2 class="game-title">The <em>Poll</em></h2>
+    <div class="game-domain">Electoral Systems · Misinformation</div>
+    <p class="game-hook">
+      You are the Chief Election Commissioner. Polling day is in six weeks. Misinformation is spreading faster than your corrections. Three candidates are accusing each other of vote manipulation. One of them might be right.
+    </p>
+    <div class="game-stakes">
+      <strong>The question:</strong> How do you protect the integrity of an election when trust in institutions is already broken?
+    </div>
+  </div>
+  <div class="game-right">
+    <div class="game-meta-label">Game details</div>
+    <div class="game-meta-row"><span class="gm-key">Role</span><span class="gm-val">Chief Election Commissioner</span></div>
+    <div class="game-meta-row"><span class="gm-key">Domain</span><span class="gm-val">Electoral governance</span></div>
+    <div class="game-meta-row"><span class="gm-key">Play time</span><span class="gm-val">8–10 min</span></div>
+    <div class="game-cta">
+      <div class="btn-coming-soon">Coming Soon</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 4 — FIX IT (coming soon)
+     ═══════════════════════════════════════════ -->
+<section class="game-section coming-soon" id="section-4">
+  <div class="game-left">
+    <div class="game-num">Game 04 · Coming soon</div>
+    <div class="amber-bar" style="opacity:.3"></div>
+    <h2 class="game-title">Fix <em>It</em></h2>
+    <div class="game-domain">Public Service Delivery</div>
+    <p class="game-hook">
+      You've been appointed District Collector. Three hospitals are understaffed. Two schools have not paid teachers in four months. The road to the reservoir is impassable. You have one budget cycle and too many problems.
+    </p>
+    <div class="game-stakes">
+      <strong>The question:</strong> Which problems can you fix, which can you only manage — and which will outlast your tenure?
+    </div>
+  </div>
+  <div class="game-right">
+    <div class="game-meta-label">Game details</div>
+    <div class="game-meta-row"><span class="gm-key">Role</span><span class="gm-val">District Collector</span></div>
+    <div class="game-meta-row"><span class="gm-key">Domain</span><span class="gm-val">Public administration</span></div>
+    <div class="game-meta-row"><span class="gm-key">Play time</span><span class="gm-val">8–10 min</span></div>
+    <div class="game-cta">
+      <div class="btn-coming-soon">Coming Soon</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 5 — SPLINTERNET (coming soon)
+     ═══════════════════════════════════════════ -->
+<section class="game-section coming-soon" id="section-5">
+  <div class="game-left">
+    <div class="game-num">Game 05 · Coming soon</div>
+    <div class="amber-bar" style="opacity:.3"></div>
+    <h2 class="game-title"><em>Splinternet</em></h2>
+    <div class="game-domain">Internet Governance · Digital Fragmentation</div>
+    <p class="game-hook">
+      You are the Minister of Digital Affairs. The internet in your country is fracturing. Three platforms have deplatformed each other. A regional bloc is offering to build you a sovereign network. The price is data localisation.
+    </p>
+    <div class="game-stakes">
+      <strong>The question:</strong> Do you protect your citizens' data, or keep them connected to the world?
+    </div>
+  </div>
+  <div class="game-right">
+    <div class="game-meta-label">Game details</div>
+    <div class="game-meta-row"><span class="gm-key">Role</span><span class="gm-val">Minister of Digital Affairs</span></div>
+    <div class="game-meta-row"><span class="gm-key">Domain</span><span class="gm-val">Internet governance</span></div>
+    <div class="game-meta-row"><span class="gm-key">Play time</span><span class="gm-val">8–10 min</span></div>
+    <div class="game-cta">
+      <div class="btn-coming-soon">Coming Soon</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTION 6 — ABOUT / FOOTER
+     ═══════════════════════════════════════════ -->
+<section class="footer-section" id="section-6" id="about">
+  <div class="footer-logo">
+    <svg viewBox="265 205 285 185" width="160" height="auto" xmlns="http://www.w3.org/2000/svg">
+      <defs><style>.cls-1{fill:#e8aa3d;}</style></defs>
+      <path class="cls-1" d="M348.68,284c-.83,1-1.07,1.47-1,2,.12.88,1.06,1.44,1.88,1.9a62,62,0,0,0,5.91,2.87q0,8.82,0,17.79.09,14.06.41,27.75l-72.34,0a42.14,42.14,0,0,1,5-19.68,36.22,36.22,0,0,1,6.39-8.78,58,58,0,0,1,16.3-10.32c3.59-1.21,8.77-3.08,14.9-5.76,8-3.49,8.71-4.46,8.72-5.27.05-2.94-8.91-3.33-22-11-7.43-4.35-12.09-8.58-13.67-14.43a18.64,18.64,0,0,1-.55-3l56.95.11.07,19.67a25.27,25.27,0,0,1-2.92,2.7A23.52,23.52,0,0,0,348.68,284Z"/>
+      <path class="cls-1" d="M371.32,217.21v-3.37h23.52v3.37H385v28h-3.8v-28Z"/>
+      <path class="cls-1" d="M404,245.2V213.84h3.79v14h16.72v-14h3.8V245.2h-3.8v-14H407.75v14Z"/>
+      <path class="cls-1" d="M439.1,245.2V213.84H458v3.37H442.9V227.8h14.15v3.37H442.9v10.66h15.37v3.37Z"/>
+      <path class="cls-1" d="M397.46,270.23h-7.65a7,7,0,0,0-.63-2.13,5.17,5.17,0,0,0-1.26-1.62,5.44,5.44,0,0,0-1.84-1,7.29,7.29,0,0,0-2.35-.36,6.8,6.8,0,0,0-3.93,1.12,7,7,0,0,0-2.53,3.23,15.46,15.46,0,0,0,0,10.34,6.51,6.51,0,0,0,6.39,4.24,7.82,7.82,0,0,0,2.29-.32,5.53,5.53,0,0,0,1.82-.95,5,5,0,0,0,1.3-1.51,6.19,6.19,0,0,0,.72-2l7.65.05a11.64,11.64,0,0,1-1.2,4.1,13,13,0,0,1-2.75,3.68,12.76,12.76,0,0,1-4.25,2.64,16.78,16.78,0,0,1-13.35-.89,13.43,13.43,0,0,1-5.31-5.48,18.29,18.29,0,0,1-1.94-8.76,18,18,0,0,1,2-8.77,13.38,13.38,0,0,1,5.34-5.46,15.26,15.26,0,0,1,7.55-1.87,16.83,16.83,0,0,1,5.27.79,12.9,12.9,0,0,1,4.25,2.29,11.89,11.89,0,0,1,3,3.7A13.55,13.55,0,0,1,397.46,270.23Z"/>
+      <path class="cls-1" d="M412.59,258.87v31.35H405V258.87Z"/>
+      <path class="cls-1" d="M427.69,258.87l7,23H435l7-23h8.48l-10.58,31.35H429.79l-10.58-31.35Z"/>
+      <path class="cls-1" d="M464.66,258.87v31.35h-7.58V258.87Z"/>
+      <path class="cls-1" d="M501.1,270.23h-7.65a6.46,6.46,0,0,0-.63-2.13,5.14,5.14,0,0,0-1.25-1.62,5.58,5.58,0,0,0-1.85-1,7.29,7.29,0,0,0-2.35-.36,6.8,6.8,0,0,0-3.93,1.12,7,7,0,0,0-2.52,3.23,15.38,15.38,0,0,0,0,10.34,6.83,6.83,0,0,0,2.53,3.17,6.9,6.9,0,0,0,3.86,1.07,7.77,7.77,0,0,0,2.29-.32,5.69,5.69,0,0,0,1.83-.95,5.13,5.13,0,0,0,1.3-1.51,6.18,6.18,0,0,0,.71-2l7.65.05a11.64,11.64,0,0,1-1.2,4.1,13,13,0,0,1-2.75,3.68,12.76,12.76,0,0,1-4.25,2.64,16.78,16.78,0,0,1-13.35-.89,13.34,13.34,0,0,1-5.3-5.48,18.17,18.17,0,0,1-1.95-8.76,18,18,0,0,1,2-8.77,13.51,13.51,0,0,1,5.34-5.46,15.29,15.29,0,0,1,7.55-1.87,16.78,16.78,0,0,1,5.27.79,13,13,0,0,1,4.26,2.29,11.86,11.86,0,0,1,3,3.7A13.36,13.36,0,0,1,501.1,270.23Z"/>
+      <path class="cls-1" d="M389.58,314.81a5.68,5.68,0,0,0-.77-1.71,5,5,0,0,0-1.24-1.26,5.42,5.42,0,0,0-1.68-.79,7.66,7.66,0,0,0-2.09-.27,7,7,0,0,0-3.94,1.1,7.08,7.08,0,0,0-2.56,3.21,12.8,12.8,0,0,0-.91,5.11,13.37,13.37,0,0,0,.88,5.14,6.59,6.59,0,0,0,6.53,4.37,8.14,8.14,0,0,0,3.53-.69,4.84,4.84,0,0,0,2.2-1.93,5.69,5.69,0,0,0,.75-3l1.41.17h-7.63v-5.53h13.53v4.15a13.85,13.85,0,0,1-1.79,7.21,11.9,11.9,0,0,1-4.9,4.61,15.29,15.29,0,0,1-7.16,1.61,15.63,15.63,0,0,1-7.88-1.94,13.51,13.51,0,0,1-5.3-5.55,18.13,18.13,0,0,1-1.9-8.57,18.92,18.92,0,0,1,1.15-6.85,14.31,14.31,0,0,1,3.21-5.08,13.6,13.6,0,0,1,4.77-3.15,15.77,15.77,0,0,1,5.86-1.08,16.34,16.34,0,0,1,5.08.78,13.92,13.92,0,0,1,4.16,2.21,11.89,11.89,0,0,1,2.95,3.38,11.35,11.35,0,0,1,1.41,4.31Z"/>
+      <path class="cls-1" d="M411.09,335.92H403l10.58-31.36h10.09l10.58,31.36h-8.15l-7.36-23.46h-.25ZM410,323.58h17v5.76H410Z"/>
+      <path class="cls-1" d="M440.82,304.56h9.38l8,19.42h.37l8-19.42h9.39v31.36H468.5V316.66h-.26l-7.53,19.06H456l-7.53-19.17h-.26v19.37h-7.38Z"/>
+      <path class="cls-1" d="M483.86,335.92V304.56h21.87v6.16H491.44v6.43h13.17v6.17H491.44v6.45h14.29v6.15Z"/>
+      <path class="cls-1" d="M530.66,314a3.56,3.56,0,0,0-1.36-2.63,5.42,5.42,0,0,0-3.42-.94,6.71,6.71,0,0,0-2.45.38,3.17,3.17,0,0,0-1.47,1.05,2.61,2.61,0,0,0-.5,1.52,2.13,2.13,0,0,0,.28,1.24,2.83,2.83,0,0,0,.92.94,6.41,6.41,0,0,0,1.46.72,15.64,15.64,0,0,0,1.93.53l2.69.61a19.34,19.34,0,0,1,4.12,1.35,11.24,11.24,0,0,1,3,2,7.79,7.79,0,0,1,1.84,2.68,9.15,9.15,0,0,1,.65,3.4,8.85,8.85,0,0,1-1.51,5.1,9.29,9.29,0,0,1-4.26,3.26,17.85,17.85,0,0,1-6.7,1.13,18.21,18.21,0,0,1-6.86-1.18,9.72,9.72,0,0,1-4.55-3.58,10.81,10.81,0,0,1-1.66-6.08h7.25a4.7,4.7,0,0,0,.82,2.53,4.44,4.44,0,0,0,2,1.53,7.78,7.78,0,0,0,2.93.52,7.21,7.21,0,0,0,2.61-.42,3.73,3.73,0,0,0,1.66-1.14,2.72,2.72,0,0,0,.6-1.69,2.38,2.38,0,0,0-.55-1.52,4.24,4.24,0,0,0-1.65-1.1,17.24,17.24,0,0,0-2.83-.87l-3.27-.76a14.4,14.4,0,0,1-6.42-3,7.16,7.16,0,0,1-2.32-5.66,8.43,8.43,0,0,1,1.56-5.1,10.36,10.36,0,0,1,4.36-3.41,15.62,15.62,0,0,1,6.36-1.23,14.93,14.93,0,0,1,6.33,1.24,9.77,9.77,0,0,1,4.17,3.45,9.21,9.21,0,0,1,1.52,5.15Z"/>
+      <path class="cls-1" d="M371.62,381.19V349.83h3.8v28H390v3.37Z"/>
+      <path class="cls-1" d="M402.36,381.19h-4l11.51-31.36h3.92l11.51,31.36h-4L412,354.79h-.24Zm1.47-12.25h16v3.37h-16Z"/>
+      <path class="cls-1" d="M433.46,381.19V349.83h11a11.51,11.51,0,0,1,5.41,1.13,7.51,7.51,0,0,1,3.17,3,8.62,8.62,0,0,1,1,4.19,7,7,0,0,1-.71,3.34,5.72,5.72,0,0,1-1.87,2.08,8.84,8.84,0,0,1-2.5,1.14v.3a6.18,6.18,0,0,1,2.89,1,7.32,7.32,0,0,1,2.43,2.64,8.25,8.25,0,0,1,1,4.19,8.35,8.35,0,0,1-1.07,4.24,7.39,7.39,0,0,1-3.38,3,14.14,14.14,0,0,1-6,1.1Zm3.8-17.58h7a7,7,0,0,0,3.1-.67,5.46,5.46,0,0,0,2.21-1.9,5.12,5.12,0,0,0,.81-2.88,4.74,4.74,0,0,0-1.44-3.51q-1.43-1.45-4.56-1.45h-7.16Zm0,14.21h7.53q3.72,0,5.29-1.44a4.61,4.61,0,0,0,1.57-3.52,5.67,5.67,0,0,0-.81-2.95,6,6,0,0,0-2.31-2.17,7.31,7.31,0,0,0-3.56-.82h-7.71Z"/>
+    </svg>
+  </div>
+  <p class="footer-tagline">
+    Governance simulations grounded in 8 years of field-tested design. No right answers. Built for classrooms, boardrooms, and workshops.
+  </p>
+  <div class="footer-links">
+    <a href="mailto:abeer.hardnews@gmail.com" class="footer-link">Contact</a>
+    <a href="#section-0" class="footer-link">Back to top</a>
+  </div>
+  <div class="footer-giz">First built with support from <strong>GIZ</strong> · civic.games · Civic Games Lab</div>
+</section>
+
+<script>
+/* ── Scroll dot tracking ──────────────────────────────── */
+const sections = document.querySelectorAll('section');
+const dots     = document.querySelectorAll('.sdot');
+
+function scrollTo(index) {
+  sections[index]?.scrollIntoView({ behavior: 'smooth' });
+}
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const idx = Array.from(sections).indexOf(entry.target);
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    }
+  });
+}, { threshold: 0.5 });
+
+sections.forEach(s => observer.observe(s));
+</script>
+
 </body>
 </html>
