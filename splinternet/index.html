@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Splinternet — Civic Games Lab</title>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>
+  <div class="logo">Civic Games Lab <span>|</span> civic.games</div>
+  <div class="game-hdr">Splinternet</div>
+</header>
+
+<!-- HUD (hidden until game starts) -->
+<div class="hud" id="hud" style="display:none">
+  <div class="hud-block">
+    <div class="hud-label">Tokens</div>
+    <div class="hud-val hud-tokens" id="hudTokens">2</div>
+    <div class="hud-sub" id="hudRole">—</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">Round</div>
+    <div class="hud-val" id="hudRound">1</div>
+    <div class="hud-sub" id="hudPhase">—</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">Agendas</div>
+    <div class="hud-val" id="hudAgendas">0/6</div>
+    <div class="hud-sub">fulfilled</div>
+  </div>
+  <div class="splinter-wrap">
+    <div class="hud-label">Splinter Index</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
+      <div class="splinter-track" style="flex:1">
+        <div class="splinter-fill" id="splinterFill" style="width:0%"></div>
+        <div class="splinter-threshold"></div>
+      </div>
+      <div class="hud-val hud-splinter" id="hudSplinter" style="font-size:15px">0%</div>
+    </div>
+    <div class="hud-sub">tipping point at 50%</div>
+  </div>
+</div>
+
+<div class="game-layout">
+
+<!-- SECTOR SIDEBAR -->
+<div class="sector-sidebar sidebar-hidden" id="sectorSidebar">
+  <div style="background:var(--mid);border-radius:6px;padding:13px 11px;border:1px solid #3A3A36">
+    <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.14em;color:#555;margin-bottom:10px;padding-bottom:7px;border-bottom:1px solid #333">Sector Fragmentation</div>
+    <div class="sector-grid" id="sectorGrid"></div>
+    <div class="sfb-wrap">
+      <div class="sfb-label">Splinter Index</div>
+      <div class="sfb-track"><div class="sfb-fill" id="sidebarSplinterFill" style="width:0%"></div><div class="sfb-mid"></div></div>
+      <div class="sfb-meta">
+        <div class="sfb-ct"><span id="sidebarFracturedCount">0</span>/16 fractured</div>
+        <div class="sfb-ct"><span id="sidebarSplinterPct">0%</span></div>
+      </div>
+    </div>
+    <div class="sector-legend">
+      <div class="sl-row"><div class="sl-dot" style="background:#3A7A46"></div><div class="sl-txt">Open</div></div>
+      <div class="sl-row"><div class="sl-dot" style="background:var(--amber)"></div><div class="sl-txt">Pressured</div></div>
+      <div class="sl-row"><div class="sl-dot" style="background:#D46060"></div><div class="sl-txt">Fractured</div></div>
+    </div>
+  </div>
+</div>
+
+<main class="game-main">
+
+<!-- ═══ INTRO ═══ -->
+<div class="screen active" id="screen-intro">
+  <div class="intro-eyebrow">civic.games · Internet Governance Simulation</div>
+  <h1 class="intro-h1">Splinternet</h1>
+  <div class="intro-sub">You are the Digital Czar. Every round, a statement lands on your desk. You have tokens, power cards, and a vote. The Splinter Index is watching.</div>
+
+  <div class="dark-box">
+    <div class="dark-box-label">The Situation</div>
+    <p>You are the senior digital policymaker of a large, post-colonial democracy of 900 million people. The internet your citizens use was built on a liberal, open architecture. That architecture is under simultaneous pressure — from states, platforms, and the quiet accumulation of governance decisions that each seem reasonable in isolation.</p>
+    <p>You will face 8 statement cards — real internet governance questions, drawn from the 16 policy categories that define the digital economy. Each round, you'll manage your token economy, decide whether to purchase a power card, cast your vote, and live with the outcome. The Splinter Index tracks the fragmentation of the global internet in real time.</p>
+    <p><em>You are not a progressive reformer. You are a czar. Your options are never perfect.</em></p>
+  </div>
+
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-label">Population</div><div class="stat-val">~900M · 55% rural · digitally fast-growing</div></div>
+    <div class="stat-card"><div class="stat-label">Internet penetration</div><div class="stat-val">52% · highest mobile growth rate globally</div></div>
+    <div class="stat-card"><div class="stat-label">Annual shutdowns</div><div class="stat-val">World's highest count — active political debate</div></div>
+    <div class="stat-card"><div class="stat-label">Data localisation</div><div class="stat-val">Proposed · contested · partially enacted</div></div>
+    <div class="stat-card"><div class="stat-label">Platform regulation</div><div class="stat-val">IT Rules in force · constitutional challenges pending</div></div>
+    <div class="stat-card"><div class="stat-label">Starting tokens</div><div class="stat-val">2 tokens · earn +1 each round you read statements</div></div>
+  </div>
+
+  <div style="font-family:'EB Garamond',serif;font-size:17px;line-height:1.7;color:var(--dark);margin-bottom:20px"><strong>Choose your role.</strong> Your role determines your token economy — how you earn, extract, or protect tokens — and which power cards are available to you each round.</div>
+
+  <div class="role-grid" id="roleGrid"></div>
+
+  <div style="font-family:'EB Garamond',serif;font-size:16px;font-style:italic;color:var(--muted);margin:16px 0 24px;text-align:center">Eight rounds. Eight decisions. Let's see who you are.</div>
+
+  <div class="btn-actions">
+    <button class="btn btn-primary" id="startBtn" onclick="startGame()" disabled>Shape the internet →</button>
+  </div>
+</div>
+
+<!-- ═══ ROUND ═══ -->
+<div class="screen" id="screen-round">
+  <div class="round-header">
+    <span class="round-badge" id="roundBadge">Round 1 of 8</span>
+    <span class="category-badge" id="roundCat"></span>
+    <span class="layer-badge" id="roundLayer"></span>
+  </div>
+  <div class="phase-indicator" id="phaseIndicator">
+    <div class="phase-dot" id="pd0"></div>
+    <div class="phase-dot" id="pd1"></div>
+    <div class="phase-dot" id="pd2"></div>
+    <div class="phase-dot" id="pd3"></div>
+    <div class="phase-dot" id="pd4"></div>
+  </div>
+
+  <!-- PHASE 0: POWER PURCHASE -->
+  <div class="phase-panel" id="phase-0">
+    <div class="phase-title">Phase 1 — Power Purchase</div>
+    <div class="token-note">You have <strong id="tokenDisplay">2</strong> tokens. Purchase one power card to activate before or after this round's vote — or pass.</div>
+    <div class="power-market" id="powerMarket"></div>
+    <div class="power-none" id="powerNoneBtn" onclick="selectPower(null)">Pass — hold tokens for future rounds</div>
+    <div class="btn-actions">
+      <button class="btn btn-primary" id="powerConfirmBtn" onclick="confirmPower()" disabled>Confirm →</button>
+    </div>
+  </div>
+
+  <!-- PHASE 1: STATEMENT -->
+  <div class="phase-panel" id="phase-1">
+    <div class="phase-title">Phase 2 — Statement</div>
+    <div class="news-flash" id="roundNews">
+      <div class="news-flash-label">From the news</div>
+      <p id="roundNewsTxt"></p>
+    </div>
+    <div class="statement-card">
+      <div class="statement-lean" id="stmtLean"></div>
+      <div class="statement-text" id="stmtText"></div>
+      <div class="statement-contest" id="stmtContest"></div>
+    </div>
+    <div class="btn-actions">
+      <button class="btn btn-primary" onclick="goPhase(2)">Go to Debate →</button>
+    </div>
+  </div>
+
+  <!-- PHASE 2: DEBATE -->
+  <div class="phase-panel" id="phase-2">
+    <div class="phase-title">Phase 3 — Debate</div>
+    <div class="arg-grid" id="argGrid"></div>
+    <div style="font-family:'EB Garamond',serif;font-size:16px;line-height:1.6;color:var(--muted);font-style:italic;margin-bottom:16px">As Digital Czar, you hear both arguments. Neither is simply right. Your vote will reflect your current priorities and any power cards in play.</div>
+    <div class="btn-actions">
+      <button class="btn btn-primary" onclick="goPhase(3)">Cast your vote →</button>
+    </div>
+  </div>
+
+  <!-- PHASE 3: VOTE -->
+  <div class="phase-panel" id="phase-3">
+    <div class="phase-title">Phase 4 — Vote</div>
+    <div id="preVotePower" style="display:none;margin-bottom:16px"></div>
+    <div class="vote-grid">
+      <div class="vote-btn pro-vote" id="votePro" onclick="castVote('pro')">
+        <div class="vote-icon">✓</div>
+        <div class="vote-label">Vote Pro</div>
+        <div class="vote-sublabel" id="voteProSub">Support this statement</div>
+      </div>
+      <div class="vote-btn anti-vote" id="voteAnti" onclick="castVote('anti')">
+        <div class="vote-icon">✗</div>
+        <div class="vote-label">Vote Anti</div>
+        <div class="vote-sublabel" id="voteAntiSub">Oppose this statement</div>
+      </div>
+    </div>
+    <div class="btn-actions">
+      <button class="btn btn-primary" id="voteConfirmBtn" onclick="resolveRound()" disabled>Confirm vote →</button>
+    </div>
+  </div>
+
+  <!-- PHASE 4: OUTCOME -->
+  <div class="phase-panel" id="phase-4">
+    <div class="phase-title">Phase 5 — Outcome & Token Distribution</div>
+    <div class="outcome-box" id="outcomeBox">
+      <div class="outcome-verdict-label" id="outcomeVerdict"></div>
+      <div class="outcome-title" id="outcomeTitle"></div>
+      <div class="outcome-body" id="outcomeBody"></div>
+    </div>
+    <div class="delta-row" id="deltaRow"></div>
+    <div class="splinter-delta" id="splinterDelta">
+      <div><div class="sd-label">Splinter Index change</div><div class="sd-val" id="sdVal"></div></div>
+      <div><div class="sd-label">Running total</div><div class="sd-val" style="color:var(--cream)" id="sdTotal"></div></div>
+      <div id="sdWarn" style="display:none;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--red)">⚠ Approaching threshold</div>
+    </div>
+    <div id="postVotePowerResult" style="display:none;margin-bottom:12px"></div>
+    <div class="ci-box" id="ciBox">
+      <div class="ci-label">Why this might surprise you</div>
+      <p id="ciTxt"></p>
+    </div>
+    <div class="rw-box">
+      <div class="rw-label">Real-world precedents</div>
+      <div id="rwItems"></div>
+    </div>
+    <div class="agenda-box">
+      <div class="agenda-label">Agenda Progress — <span id="agendaCount">0/6</span> fulfilled</div>
+      <div id="agendaList"></div>
+    </div>
+    <div class="btn-actions" id="outcomeActions"></div>
+  </div>
+</div>
+
+<!-- ═══ TIPPING ═══ -->
+<div class="screen" id="screen-tipping">
+  <div class="tipping-hero">
+    <div class="tipping-icon">⚡</div>
+    <div class="tipping-label">Tipping Point Reached</div>
+    <div class="tipping-title">The Splinternet is now irreversible.</div>
+    <div class="tipping-body">Your accumulated decisions have passed 50% fragmentation. Separate technospheres are consolidating — each with its own rules, its own stack, its own version of the internet.</div>
+  </div>
+  <div style="font-family:'EB Garamond',serif;font-size:17px;line-height:1.7;color:var(--dark);margin-bottom:28px">This happened gradually — through moderation mandates, localisation clauses, and security exceptions that each seemed reasonable in isolation. No single czar caused this. But you were one of them.</div>
+  <button class="btn btn-secondary" onclick="showEndScreen()">See your full profile →</button>
+</div>
+
+<!-- ═══ END ═══ -->
+<div class="screen" id="screen-end">
+  <div class="end-hero">
+    <div class="end-eyebrow">Your Digital Governance Profile</div>
+    <h2 class="end-h2" id="endTitle"></h2>
+    <div class="end-sub" id="endSub"></div>
+  </div>
+
+  <!-- Persona reveal -->
+  <div class="persona-reveal" id="personaReveal"></div>
+
+  <!-- Radar -->
+  <div class="chart-wrap"><canvas id="radarChart" width="320" height="320"></canvas></div>
+
+  <!-- Splinter verdict -->
+  <div id="splinterVerdict" style="margin-bottom:24px"></div>
+
+  <!-- Three-lens insights -->
+  <div class="insight-section">
+    <div class="insight-section-label">What your decisions reveal</div>
+    <div id="insightCards"></div>
+  </div>
+
+  <!-- Tension cards -->
+  <div class="insight-section">
+    <div class="insight-section-label">The four tensions you navigated</div>
+    <div class="tension-grid" id="tensionGrid"></div>
+  </div>
+
+  <div class="debrief-box"><strong>For the debrief:</strong> The internet was never fully open — it was built on infrastructure controlled by states and corporations, governed by standards bodies dominated by wealthy democracies. Every decision in this game has a real-world equivalent. None were made by people who thought they were fragmenting the internet. <em>How did we get here?</em></div>
+  <div class="btn-actions">
+    <button class="btn btn-primary" onclick="restartGame()">Play again</button>
+    <a class="btn btn-secondary" href="https://civicgameslab.com" target="_blank">Civic Games Lab</a>
+  </div>
+</div>
+
+</main>
+</div><!-- end game-layout -->
+<footer><p>Civic Games Lab · civic.games · Every statement backed by a real policy, precedent, or incident. No right answers.</p></footer>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
