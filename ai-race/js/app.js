@@ -2,7 +2,7 @@
 // CONSTANTS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const TIMER_SECONDS = 60;
+const TIMER_SECONDS = 120;
 const TOTAL_MONTHS  = 18;
 const SCORE_MAX     = { S: 88, L: 107, C: 65, Su: 55 };
 const SCORE_LABELS  = { S: 'Sovereignty', L: 'Legitimacy', C: 'Capacity', Su: 'Sustain.' };
