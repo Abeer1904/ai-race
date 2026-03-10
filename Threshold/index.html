@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STOKING FIRES EVERYWHERE — Console of Last Resort</title>
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+<body>
+
+<!-- TITLE SCREEN -->
+<div id="title-screen">
+  <div class="title-label">CIVIC GAMES LAB  ·  PEACE BY PEACE UNIVERSE</div>
+  <div class="title-main">STOKING FIRES<br>EVERYWHERE</div>
+  <div class="title-sub">A CONSOLE OF LAST RESORT</div>
+  <div class="title-context">you are not a general &nbsp;·&nbsp; you command no armies &nbsp;·&nbsp; your task is harder</div>
+  <button class="title-start" onclick="startGame()">[ ENTER CONSOLE ]</button>
+</div>
+
+<!-- ACT CARD -->
+<div id="act-card">
+  <div class="act-number" id="act-num">ACT I</div>
+  <div class="act-title" id="act-title">THE KINDLING</div>
+  <div class="act-desc" id="act-desc"></div>
+</div>
+
+<!-- MAIN GAME -->
+<div id="game">
+  <!-- TOPBAR -->
+  <div id="topbar">
+    <span class="topbar-left">STOKING FIRES EVERYWHERE &nbsp;·&nbsp; CONSOLE OF LAST RESORT</span>
+    <div class="topbar-right">
+      <span id="turn-display">TURN 01 / 20</span>
+      <span id="act-display" style="color:var(--amber)">ACT I</span>
+      <span id="date-display"></span>
+    </div>
+  </div>
+
+  <!-- MAIN LEFT PANEL -->
+  <div id="main-panel">
+    <div id="message-feed"></div>
+    <div id="decision-panel">
+      <div id="decision-label">YOUR INTERVENTION — SELECT ONE:</div>
+      <div id="decision-options"></div>
+    </div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <div id="right-panel">
+    <!-- DOOMSDAY CLOCK -->
+    <div id="clock-section">
+      <div class="section-label">DOOMSDAY CLOCK</div>
+      <canvas id="clock-face" width="120" height="120"></canvas>
+      <div id="clock-steps" class="cursor-blink">1</div>
+      <div id="clock-label">steps to midnight</div>
+    </div>
+
+    <!-- CONFLICT ESCALATION -->
+    <div id="conflicts-section">
+      <div class="section-label">CONFLICT ESCALATION</div>
+      <div class="conflict-row">
+        <div class="conflict-name"><span>I · EXPANSIONIST WAR</span><span class="conflict-val" id="c1-val">22</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="c1-bar"></div></div>
+      </div>
+      <div class="conflict-row">
+        <div class="conflict-name"><span>II · IMPERIAL COLLAPSE</span><span class="conflict-val" id="c2-val">38</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="c2-bar"></div></div>
+      </div>
+      <div class="conflict-row">
+        <div class="conflict-name"><span>III · BORDERLANDS</span><span class="conflict-val" id="c3-val">31</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="c3-bar"></div></div>
+      </div>
+      <div class="conflict-row">
+        <div class="conflict-name"><span>IV · ECONOMIC CHALLENGE</span><span class="conflict-val" id="c4-val">18</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="c4-bar"></div></div>
+      </div>
+    </div>
+
+    <!-- GLOBAL METERS -->
+    <div id="global-section">
+      <div class="section-label">GLOBAL METERS</div>
+      <div class="global-row">
+        <div class="global-name">ECONOMY <span class="global-val" id="eco-val">74</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="eco-bar"></div></div>
+      </div>
+      <div class="global-row">
+        <div class="global-name">ALLIANCES <span class="global-val" id="all-val">52</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="all-bar"></div></div>
+      </div>
+      <div class="global-row">
+        <div class="global-name">PUBLIC PRESSURE <span class="global-val" id="pp-val">41</span></div>
+        <div class="meter-bar"><div class="meter-fill" id="pp-bar"></div></div>
+      </div>
+      <div class="global-row">
+        <div class="global-name">HUMANITARIAN ↑ <span class="global-val" id="hum-val" style="color:var(--red)">12k</span></div>
+        <div class="meter-bar"><div class="meter-fill danger" id="hum-bar" style="width:8%"></div></div>
+      </div>
+    </div>
+
+    <!-- RESOURCES -->
+    <div id="resources-section">
+      <div class="section-label">YOUR RESOURCES</div>
+      <div class="resource-row">
+        <span class="res-name">DIP</span><div class="res-pips" id="dip-pips"></div>
+      </div>
+      <div class="resource-row">
+        <span class="res-name">ECO</span><div class="res-pips" id="eco-pips"></div>
+      </div>
+      <div class="resource-row">
+        <span class="res-name">POL</span><div class="res-pips" id="pol-pips"></div>
+      </div>
+      <div class="resource-row">
+        <span class="res-name">COV</span><div class="res-pips" id="cov-pips"></div>
+      </div>
+      <div class="resource-row">
+        <span class="res-name">OVT</span><div class="res-pips" id="ovt-pips"></div>
+      </div>
+    </div>
+
+    <!-- INTELLIGENCE STATUS -->
+    <div id="intel-section">
+      <div class="section-label">INTELLIGENCE</div>
+      <span id="misinfo-status">SIGNAL NOISE: 12%</span>
+      <span id="trust-status">TRUST: — 0/10</span>
+    </div>
+  </div>
+
+  <!-- BOTTOM BAR -->
+  <div id="bottombar">
+    <span id="turn-info">TURN 01/20</span>
+    <div id="p2p-display">
+      <span>PEOPLE-TO-PEOPLE:</span>
+      <div class="p2p-bar"><div class="p2p-fill" id="p2p-fill"></div></div>
+      <span id="p2p-label">60</span>
+    </div>
+    <span id="alt-status" style="color:var(--grey);font-size:10px">ALT ACTIONS: AVAILABLE</span>
+    <span id="scandal-status" style="color:var(--grey);font-size:10px;margin-left:auto">SCANDAL: DORMANT</span>
+    <span style="color:var(--green-dark);font-size:9px;margin-left:12px">[CLICK FEED TO SKIP TEXT]</span>
+  </div>
+</div>
+
+<!-- OUTCOME SCREEN -->
+<div id="outcome-screen">
+  <div class="outcome-title" id="outcome-title">FRAGILE PEACE</div>
+  <div class="outcome-desc" id="outcome-desc"></div>
+  <div class="outcome-cost-title">HUMANITARIAN COST</div>
+  <div id="cost-lines"></div>
+  <div class="projection-block">
+    <div class="proj-label">TEN-YEAR PROJECTION</div>
+    <div class="proj-text" id="proj-text"></div>
+  </div>
+  <button class="replay-btn" onclick="location.reload()">[ REPLAY ]</button>
+</div>
+
+<!-- MIDNIGHT SCREEN -->
+<div id="midnight-screen">
+  <div id="midnight-lines"></div>
+</div>
+
+<script src="js/game.js"></script>
+
+</body>
+</html>
