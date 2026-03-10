@@ -131,6 +131,7 @@
   <!-- PHASE 1: STATEMENT -->
   <div class="phase-panel" id="phase-1">
     <div class="phase-title">Phase 2 — Statement</div>
+    <div class="active-power-banner" id="activePowerBanner1" style="display:none"></div>
     <div class="news-flash" id="roundNews">
       <div class="news-flash-label">From the news</div>
       <p id="roundNewsTxt"></p>
@@ -145,9 +146,15 @@
     </div>
   </div>
 
+  <div class="agenda-box" id="sharedAgendaBox" style="display:none;margin-bottom:20px;">
+    <div class="agenda-label">Agenda Progress — <span id="sharedAgendaCount">0/6</span> fulfilled</div>
+    <div id="sharedAgendaList"></div>
+  </div>
+
   <!-- PHASE 2: DEBATE -->
   <div class="phase-panel" id="phase-2">
     <div class="phase-title">Phase 3 — Debate</div>
+    <div class="active-power-banner" id="activePowerBanner2" style="display:none"></div>
     <div class="arg-grid" id="argGrid"></div>
     <div style="font-family:'EB Garamond',serif;font-size:16px;line-height:1.6;color:var(--muted);font-style:italic;margin-bottom:16px">As Digital Czar, you hear both arguments. Neither is simply right. Your vote will reflect your current priorities and any power cards in play.</div>
     <div class="btn-actions">
@@ -257,7 +264,7 @@
 
 </main>
 </div><!-- end game-layout -->
-<footer><p>Civic Games Lab · civic.games · Every statement backed by a real policy, precedent, or incident. No right answers.</p></footer>
+<footer><p>Built with KOAN Advisory · Civic Games Lab · civic.games · Every statement backed by a real policy, precedent, or incident. No right answers.</p></footer>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <script src="js/game.js"></script>

@@ -638,7 +638,7 @@ function renderIntro() {
       <div style="padding-top:32px">
         <button class="btn btn-primary btn-full" onclick="startGame()">Take office →</button>
         <button class="btn btn-full" style="margin-top:10px" onclick="showScreen('howtoplay')">How to play</button>
-        <div class="giz-line">First built with support from <strong>GIZ</strong></div>
+        <div class="giz-line">First built with support from <strong>FNF</strong></div>
       </div>
     </div>
   </div>`;
@@ -959,7 +959,7 @@ function renderOutcome() {
       <button class="btn btn-primary btn-full" onclick="openInsightReport()" style="margin-bottom:10px;background:var(--amber);color:var(--ink);border-color:var(--amber)">Download Insight Report →</button>
       <button class="btn btn-full" onclick="location.reload()">Play again</button>
       <div style="padding-top:32px;border-top:1px solid var(--border);margin-top:32px">
-        <div class="giz-note">First built with support from <em>GIZ</em></div>
+        <div class="giz-note">First built with support from <em>FNF</em></div>
         <div class="copyright-line">civic.games · Civic Games Lab<br>
           <a href="https://civic.games">civic.games</a>
         </div>
@@ -1458,7 +1458,7 @@ function openInsightReport() {
 
   <!-- ── FOOTER ── -->
   <div style="background:#1A1A1A;padding:24px 48px;display:flex;justify-content:space-between;align-items:center">
-    <div style="font-size:9px;color:rgba(234,229,208,.3);letter-spacing:.1em">civic.games · Civic Games Lab · First built with support from GIZ</div>
+    <div style="font-size:9px;color:rgba(234,229,208,.3);letter-spacing:.1em">civic.games · Civic Games Lab · First built with support from FNF</div>
     <div style="font-size:9px;color:rgba(234,229,208,.2)">Engines of Growth — Report</div>
   </div>
 

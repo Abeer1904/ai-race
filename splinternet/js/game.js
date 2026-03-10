@@ -389,44 +389,254 @@ function castVote(v) {
   document.getElementById('voteConfirmBtn').disabled = false;
 }
 
+function getCurrentStatement() {
+  const stmtIdx = G.stmtOrder ? G.stmtOrder[G.round] : G.round;
+  return STATEMENTS[stmtIdx];
+}
+
+function getAIVoteForStatement(stmt) {
+  return stmt.lean === 'Anti-splinter' ? 'pro' : 'anti';
+}
+
+function buildActivePowerHtml() {
+  if (!G.chosenPower) return '';
+  const p = ALL_POWERS[G.chosenPower];
+  if (!p) return '';
+  const stmt = getCurrentStatement();
+  const notes = [];
+  if (G.chosenPower === 'Expose Scandal') {
+    notes.push(`AI intended vote: <strong>${getAIVoteForStatement(stmt).toUpperCase()}</strong>`);
+  }
+  if (G.chosenPower === 'User Analytics' || G.chosenPower === 'Expert Testimony') {
+    notes.push(`Statement Splinter impact: <strong>${stmt.splinter > 0 ? '+' : ''}${stmt.splinter}%</strong>`);
+  }
+  return `<div class="active-power-banner-inner"><div class="active-power-kicker">Active Power</div><div class="active-power-title">${G.chosenPower}</div><div class="active-power-meta">${p.timing}</div><div class="active-power-desc">${p.effect}</div>${notes.map(n => `<div class="active-power-note">${n}</div>`).join('')}</div>`;
+}
+
+function applyBeforeVoting(ctx) {
+  if (!ctx.powerName) return ctx;
+
+  if (ctx.power.timing === 'Before Voting' || ctx.power.timing === 'Any') {
+    if (ctx.power.splinter_mod) {
+      const prev = ctx.splinterMod;
+      ctx.splinterMod += ctx.power.splinter_mod;
+      if (ctx.power.splinter_mod !== 0) {
+        ctx.powerLog.push(`Splinter modifier: ${prev > 0 ? '+' : ''}${prev} → ${ctx.splinterMod > 0 ? '+' : ''}${ctx.splinterMod}`);
+      }
+    }
+
+    switch (ctx.powerName) {
+      case 'Ban Hammer': {
+        const prev = ctx.aiVotes;
+        ctx.aiVotes = Math.max(0, ctx.aiVotes - 1);
+        ctx.powerLog.push(`AI votes: ${prev}→${ctx.aiVotes}`);
+        break;
+      }
+      case 'Compliance Mandate': {
+        const prev = ctx.aiVotes;
+        ctx.aiVotes = Math.max(0, ctx.aiVotes - 1);
+        ctx.powerLog.push(`Compliance Mandate suppressed opposition vote: AI votes ${prev}→${ctx.aiVotes}`);
+        break;
+      }
+      case 'Vetting Shield': {
+        const prev = ctx.playerVotes;
+        ctx.playerVotes += 1;
+        ctx.powerLog.push(`Your vote doubled: player votes ${prev}→${ctx.playerVotes}`);
+        break;
+      }
+      case 'Grassroots Voice': {
+        const prev = ctx.playerVotes;
+        ctx.playerVotes += 1;
+        ctx.powerLog.push(`Grassroots support added: player votes ${prev}→${ctx.playerVotes}`);
+        break;
+      }
+      case 'Platform Lock-In':
+      case 'Public Outcry': {
+        const prev = ctx.aiVotes;
+        ctx.aiVotes = Math.max(0, ctx.aiVotes - 1);
+        ctx.powerLog.push(`AI coalition weakened: AI votes ${prev}→${ctx.aiVotes}`);
+        break;
+      }
+      case 'Community Shield':
+      case 'Collective Pushback':
+      case 'Circumvention': {
+        ctx.powerLog.push(`Round splinter pressure reduced by ${Math.abs(ctx.power.splinter_mod)}.`);
+        break;
+      }
+      case 'Expose Scandal': {
+        ctx.flags.revealedAIVote = true;
+        ctx.powerLog.push(`AI intended vote revealed: ${ctx.aiVote.toUpperCase()}.`);
+        break;
+      }
+      case 'Appeals Court': {
+        ctx.flags.neutralizedStatement = true;
+        ctx.powerLog.push('Statement lean neutralized for Splinter Index this round.');
+        break;
+      }
+      case 'Fair Access Plea': {
+        ctx.flags.forcedHonestAI = true;
+        ctx.powerLog.push(`AI locked to honest vote: ${ctx.aiVote.toUpperCase()}.`);
+        break;
+      }
+      case 'Workaround Hack': {
+        ctx.flags.tokenProtected = true;
+        ctx.powerLog.push('Token-protection active for this round.');
+        break;
+      }
+      case 'Cancel Callout': {
+        const prev = ctx.splinterMod;
+        ctx.splinterMod = 0;
+        ctx.powerLog.push(`Splinter modifier effects cancelled: ${prev > 0 ? '+' : ''}${prev}→0`);
+        break;
+      }
+      case 'Evidence Drop': {
+        ctx.flags.invertLeanForScoring = true;
+        ctx.powerLog.push('Statement lean inverted for score logic this round.');
+        break;
+      }
+      case 'Echo Chamber': {
+        ctx.flags.echoChamberEligible = true;
+        ctx.powerLog.push('Echo Chamber condition armed for post-vote token check.');
+        break;
+      }
+      case 'User Analytics': {
+        ctx.flags.revealedSplinter = true;
+        ctx.powerLog.push(`Statement Splinter impact revealed: ${ctx.stmt.splinter > 0 ? '+' : ''}${ctx.stmt.splinter}%`);
+        break;
+      }
+      case 'Expert Testimony': {
+        ctx.flags.revealedSplinter = true;
+        ctx.tokenBonus += 1;
+        ctx.powerLog.push(`Expert Testimony: +1 token and full round breakdown preview.`);
+        break;
+      }
+      default:
+        break;
+    }
+  }
+
+  return ctx;
+}
+
+function applyAfterVoting(ctx) {
+  if (!ctx.powerName) return ctx;
+
+  if (ctx.power.timing === 'After Voting' || ctx.power.timing === 'Any') {
+    switch (ctx.powerName) {
+      case 'Bootstrap Surge':
+        if (!ctx.playerInMajority) {
+          ctx.tokenBonus += 4;
+          ctx.powerLog.push('Bootstrap Surge: +4 tokens for minority vote.');
+        }
+        break;
+      case 'Mobilize Base':
+        if (!ctx.playerInMajority) {
+          ctx.tokenBonus += 3;
+          ctx.powerLog.push('Mobilize Base: +3 tokens for minority vote.');
+        }
+        break;
+      case 'Everyday Adaptation':
+        ctx.tokenBonus += 1;
+        ctx.powerLog.push('Everyday Adaptation: +1 token regardless of outcome.');
+        break;
+      case 'Viral Wave':
+        if (!ctx.playerInMajority) {
+          const prev = ctx.playerVotes;
+          ctx.playerVotes += 2;
+          ctx.flags.recomputeMajority = true;
+          ctx.powerLog.push(`Viral Wave phantom votes: player votes ${prev}→${ctx.playerVotes}`);
+        }
+        break;
+      case 'Rapid Scale':
+        if (!ctx.playerInMajority) {
+          const prev = ctx.playerVotes;
+          ctx.playerVotes += 1;
+          ctx.flags.recomputeMajority = true;
+          ctx.powerLog.push(`Rapid Scale phantom vote: player votes ${prev}→${ctx.playerVotes}`);
+        }
+        break;
+      case 'Testimony':
+        if (!ctx.playerInMajority) {
+          const prev = ctx.playerVotes;
+          ctx.playerVotes += 1;
+          ctx.flags.recomputeMajority = true;
+          ctx.flags.testimonyNoSplinterFlip = true;
+          ctx.powerLog.push(`Testimony retroactive vote: player votes ${prev}→${ctx.playerVotes} (record only).`);
+        }
+        break;
+      case 'Fine Strike':
+        if (ctx.playerInMajority) {
+          ctx.tokenBonus += 2;
+          ctx.powerLog.push('Fine Strike: +2 tokens for majority vote.');
+        }
+        break;
+      case 'Hashtag Shield':
+        ctx.tokenBonus += 2;
+        ctx.powerLog.push('Hashtag Shield: +2 tokens.');
+        break;
+      case 'Policy Roadblock':
+        if (!ctx.playerInMajority && ctx.rawSplinter > 0) {
+          const prev = ctx.rawSplinter;
+          ctx.rawSplinter = Math.ceil(ctx.rawSplinter * 0.5);
+          ctx.powerLog.push(`Policy Roadblock halved splinter advance: +${prev}%→+${ctx.rawSplinter}%`);
+        }
+        break;
+      case 'White Paper':
+        if (ctx.rawSplinter !== 0) {
+          ctx.rawSplinter = 0;
+        }
+        ctx.powerLog.push('White Paper neutralized Splinter Index change this round.');
+        break;
+      default:
+        break;
+    }
+  }
+
+  if (ctx.flags.echoChamberEligible && ctx.stmt.lean === 'Anti-splinter' && ctx.vote === 'pro') {
+    ctx.tokenBonus += 2;
+    ctx.powerLog.push('Echo Chamber trigger met: +2 tokens for counterintuitive vote.');
+  }
+
+  return ctx;
+}
+
 // ═══════════════════════════════════════════════════
 // OUTCOME RESOLUTION
 // ═══════════════════════════════════════════════════
 function resolveRound() {
-  const stmtIdx = G.stmtOrder ? G.stmtOrder[G.round] : G.round;
-  const stmt = STATEMENTS[stmtIdx];
+  const stmt = getCurrentStatement();
   const vote = G.playerVote;
 
   // AI coalition votes — strategic but beatable
   // Lean toward the statement's own direction, with some variance
-  const aiLeansPro = stmt.lean === 'Anti-splinter'; // AI coalition defends openness
-  const aiVote = aiLeansPro ? 'pro' : 'anti';
+  const aiVote = getAIVoteForStatement(stmt);
 
   // Determine majority (simplified: player + AI coalition = 3 votes, player has 1, AI has 2)
-  let playerVotes = 1;
-  let aiVotes = 2;
+  let ctx = {
+    stmt,
+    vote,
+    aiVote,
+    playerVotes: 1,
+    aiVotes: 2,
+    splinterMod: 0,
+    tokenBonus: 0,
+    powerName: G.chosenPower,
+    power: G.chosenPower ? ALL_POWERS[G.chosenPower] : null,
+    powerLog: [],
+    flags: {},
+    rawSplinter: stmt.splinter,
+    majorityVote: null,
+    playerInMajority: false,
+  };
 
-  // Apply Before-Voting power effects
-  let splinterMod = 0;
-  if (G.chosenPower) {
-    const p = ALL_POWERS[G.chosenPower];
-    if (p.timing === 'Before Voting' || p.timing === 'Any') {
-      splinterMod += p.splinter_mod;
-      if (G.chosenPower === 'White Paper') splinterMod = -99; // neutralise
-      if (G.chosenPower === 'Ban Hammer') aiVotes -= 1;
-      if (G.chosenPower === 'Vetting Shield') playerVotes += 1;
-      if (G.chosenPower === 'Grassroots Voice') playerVotes += 1;
-      if (G.chosenPower === 'Platform Lock-In') aiVotes = Math.max(0, aiVotes - 1);
-      if (G.chosenPower === 'Community Shield') splinterMod -= 2;
-      if (G.chosenPower === 'Collective Pushback') splinterMod -= 2;
-      if (G.chosenPower === 'Circumvention') splinterMod -= 3;
-    }
-  }
+  ctx = applyBeforeVoting(ctx);
 
-  const playerWins = playerVotes > aiVotes || (playerVotes === aiVotes && vote === aiVote);
   const sameSide = vote === aiVote;
-  const majorityVote = sameSide ? vote : (playerVotes > aiVotes ? vote : aiVote);
-  const playerInMajority = vote === majorityVote;
+  ctx.majorityVote = sameSide ? vote : (ctx.playerVotes > ctx.aiVotes ? vote : aiVote);
+  ctx.playerInMajority = vote === ctx.majorityVote;
+
+  const majorityVote = ctx.majorityVote;
+  const playerInMajority = ctx.playerInMajority;
   if (playerInMajority) G.majorityVoteCount++;
 
   // Track agenda stats
@@ -443,7 +653,10 @@ function resolveRound() {
   // Apply score changes
   let scores = { ...stmt.scores };
   // If player voted against the statement's lean, invert score direction
-  const proLean = stmt.lean === 'Anti-splinter';
+  const effectiveLean = ctx.flags.invertLeanForScoring
+    ? (stmt.lean === 'Anti-splinter' ? 'Pro-splinter' : 'Anti-splinter')
+    : stmt.lean;
+  const proLean = effectiveLean === 'Anti-splinter';
   if ((proLean && vote === 'anti') || (!proLean && vote === 'pro')) {
     // Against lean — reverse welfare & openness
     scores.openness = -scores.openness;
@@ -454,31 +667,37 @@ function resolveRound() {
   });
 
   // Splinter change
-  let rawSplinter = stmt.splinter;
-  if (splinterMod === -99) rawSplinter = 0; // White Paper
-  else rawSplinter += splinterMod;
+  let rawSplinter = ctx.flags.neutralizedStatement ? 0 : stmt.splinter;
+  rawSplinter += ctx.splinterMod;
   // If player voted against the fragmentation direction, reduce splinter slightly
-  if ((stmt.splinter > 0 && vote === 'anti') || (stmt.splinter < 0 && vote === 'pro')) {
+  if (!ctx.flags.neutralizedStatement && ((stmt.splinter > 0 && vote === 'anti') || (stmt.splinter < 0 && vote === 'pro'))) {
     rawSplinter = Math.round(rawSplinter * 0.6);
   }
-  G.splinter = Math.max(0, Math.min(100, G.splinter + rawSplinter));
+  ctx.rawSplinter = rawSplinter;
 
-  // Apply After-Voting power effects (token bonuses)
-  let tokenBonus = 0;
-  let powerResultMsg = '';
-  if (G.chosenPower) {
-    const p = ALL_POWERS[G.chosenPower];
-    if (p.timing === 'After Voting' || p.timing === 'Any') {
-      if (G.chosenPower === 'Bootstrap Surge' && !playerInMajority) { tokenBonus += 4; powerResultMsg = 'Bootstrap Surge activated — +4 tokens for voting minority.'; }
-      if (G.chosenPower === 'Mobilize Base' && !playerInMajority) { tokenBonus += 3; powerResultMsg = 'Mobilize Base activated — +3 tokens for voting minority.'; }
-      if (G.chosenPower === 'Everyday Adaptation') { tokenBonus += 1; powerResultMsg = 'Everyday Adaptation — +1 token regardless of outcome.'; }
-      if (G.chosenPower === 'Viral Wave' && !playerInMajority) { tokenBonus += 0; powerResultMsg = 'Viral Wave added 2 phantom votes — your position has more support on the record than the vote shows.'; }
-      if (G.chosenPower === 'White Paper') { tokenBonus += 0; powerResultMsg = 'White Paper neutralised the Splinter Index impact of this round entirely.'; }
-      if (G.chosenPower === 'Fine Strike' && playerInMajority) { tokenBonus += 2; powerResultMsg = 'Fine Strike — +2 tokens for voting with the majority.'; }
-      if (G.chosenPower === 'Policy Roadblock' && !playerInMajority) { powerResultMsg = 'Policy Roadblock halved the Splinter Index advance from this loss.'; }
-      if (G.chosenPower === 'Hashtag Shield') { tokenBonus += 2; powerResultMsg = 'Hashtag Shield — +2 tokens.'; }
+  ctx = applyAfterVoting(ctx);
+  if (ctx.flags.recomputeMajority) {
+    const previousMajority = ctx.majorityVote;
+    ctx.majorityVote = sameSide ? vote : (ctx.playerVotes > ctx.aiVotes ? vote : aiVote);
+    ctx.playerInMajority = vote === ctx.majorityVote;
+    if (previousMajority !== ctx.majorityVote) {
+      ctx.powerLog.push(`Outcome record flipped: majority ${previousMajority.toUpperCase()}→${ctx.majorityVote.toUpperCase()}`);
     }
   }
+
+  const finalMajorityVote = ctx.majorityVote;
+  const finalPlayerInMajority = ctx.playerInMajority;
+  if (finalPlayerInMajority !== playerInMajority) {
+    if (playerInMajority) G.majorityVoteCount = Math.max(0, G.majorityVoteCount - 1);
+    if (finalPlayerInMajority) G.majorityVoteCount++;
+  }
+
+  rawSplinter = ctx.rawSplinter;
+
+  G.splinter = Math.max(0, Math.min(100, G.splinter + rawSplinter));
+
+  let tokenBonus = ctx.tokenBonus;
+  const powerResultMsg = ctx.powerLog.length ? ctx.powerLog[ctx.powerLog.length - 1] : '';
 
   // Base token distribution
   tokenBonus += 1; // +1 per round for non-Regulator
@@ -492,7 +711,7 @@ function resolveRound() {
   });
 
   updateHUD();
-  buildOutcomePanel(stmt, vote, majorityVote, rawSplinter, scores, powerResultMsg, playerInMajority);
+  buildOutcomePanel(stmt, vote, finalMajorityVote, rawSplinter, scores, powerResultMsg, finalPlayerInMajority, ctx.powerLog);
   goPhase(4);
 
   if (G.splinter >= 50 && !G.tipped) {
@@ -500,7 +719,7 @@ function resolveRound() {
   }
 }
 
-function buildOutcomePanel(stmt, vote, majorityVote, splinterChange, scores, powerMsg, inMajority) {
+function buildOutcomePanel(stmt, vote, majorityVote, splinterChange, scores, powerMsg, inMajority, powerLog) {
   // Outcome box
   const won = vote === majorityVote;
   const box = document.getElementById('outcomeBox');
@@ -551,7 +770,8 @@ function buildOutcomePanel(stmt, vote, majorityVote, splinterChange, scores, pow
   const pvr = document.getElementById('postVotePowerResult');
   if (powerMsg) {
     pvr.style.display = 'block';
-    pvr.innerHTML = `<div style="background:#1C3020;border-left:3px solid var(--green);padding:12px 16px;border-radius:3px;font-size:13px;color:#A0C8A8"><strong>⚡ Power activated:</strong> ${powerMsg}</div>`;
+    const details = (powerLog || []).map(item => `<div style="margin-top:4px">• ${item}</div>`).join('');
+    pvr.innerHTML = `<div style="background:#1C3020;border-left:3px solid var(--green);padding:12px 16px;border-radius:3px;font-size:13px;color:#A0C8A8"><strong>⚡ Power activated:</strong> ${powerMsg}${details ? `<div style="margin-top:6px">${details}</div>` : ''}</div>`;
   } else {
     pvr.style.display = 'none';
   }
@@ -564,10 +784,17 @@ function buildOutcomePanel(stmt, vote, majorityVote, splinterChange, scores, pow
 
   // Agendas
   const fulfilled = G.agendas.filter(a => a.done).length;
-  document.getElementById('agendaCount').textContent = fulfilled + '/6';
-  document.getElementById('agendaList').innerHTML = G.agendas.map(a =>
+  const agendaHtml = G.agendas.map(a =>
     `<div class="agenda-item"><div class="agenda-check ${a.done ? 'ac-done' : 'ac-todo'}">${a.done ? '✓' : ''}</div><span style="color:${a.done ? 'var(--green)' : 'var(--dark)'}">${a.text}</span></div>`
   ).join('');
+  document.getElementById('agendaCount').textContent = fulfilled + '/6';
+  document.getElementById('agendaList').innerHTML = agendaHtml;
+  const sharedAgendaCount = document.getElementById('sharedAgendaCount');
+  const sharedAgendaList = document.getElementById('sharedAgendaList');
+  if (sharedAgendaCount && sharedAgendaList) {
+    sharedAgendaCount.textContent = fulfilled + '/6';
+    sharedAgendaList.innerHTML = agendaHtml;
+  }
 
   // Actions
   const actions = document.getElementById('outcomeActions');
@@ -600,6 +827,30 @@ function goPhase(p) {
   }
   const labels = ['Power Purchase', 'Statement', 'Debate', 'Vote', 'Outcome'];
   document.getElementById('hudPhase').textContent = labels[p] || '';
+
+  const banner1 = document.getElementById('activePowerBanner1');
+  const banner2 = document.getElementById('activePowerBanner2');
+  const preVotePower = document.getElementById('preVotePower');
+  const hasPower = !!G.chosenPower;
+  const activeHtml = hasPower ? buildActivePowerHtml() : '';
+
+  if (banner1) {
+    banner1.style.display = hasPower && p === 1 ? 'block' : 'none';
+    if (hasPower && p === 1) banner1.innerHTML = activeHtml;
+  }
+  if (banner2) {
+    banner2.style.display = hasPower && p === 2 ? 'block' : 'none';
+    if (hasPower && p === 2) banner2.innerHTML = activeHtml;
+  }
+  if (preVotePower) {
+    preVotePower.style.display = hasPower && p === 3 ? 'block' : 'none';
+    if (hasPower && p === 3) preVotePower.innerHTML = activeHtml;
+  }
+
+  const sharedAgendaBox = document.getElementById('sharedAgendaBox');
+  if (sharedAgendaBox) {
+    sharedAgendaBox.style.display = (p === 1 || p === 2) ? 'block' : 'none';
+  }
   window.scrollTo(0, 0);
 }
 
