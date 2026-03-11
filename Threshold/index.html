@@ -29,7 +29,11 @@
 <div id="game">
   <!-- TOPBAR -->
   <div id="topbar">
-    <span class="topbar-left">STOKING FIRES EVERYWHERE &nbsp;·&nbsp; CONSOLE OF LAST RESORT</span>
+    <span class="topbar-left">
+      <a href="../index.html" class="topbar-back">&larr; civic.games</a>
+      <span class="topbar-sep">|</span>
+      STOKING FIRES EVERYWHERE &nbsp;·&nbsp; CONSOLE OF LAST RESORT
+    </span>
     <div class="topbar-right">
       <span id="turn-display">TURN 01 / 20</span>
       <span id="act-display" style="color:var(--amber)">ACT I</span>
@@ -150,12 +154,18 @@
     <div class="proj-label">TEN-YEAR PROJECTION</div>
     <div class="proj-text" id="proj-text"></div>
   </div>
-  <button class="replay-btn" onclick="location.reload()">[ REPLAY ]</button>
+  <div class="outcome-actions">
+    <button class="replay-btn" onclick="location.reload()">[ PLAY AGAIN ]</button>
+    <a href="../index.html" class="replay-btn replay-btn-back">[ &larr; BACK TO CIVIC.GAMES ]</a>
+  </div>
 </div>
 
 <!-- MIDNIGHT SCREEN -->
 <div id="midnight-screen">
   <div id="midnight-lines"></div>
+  <div id="midnight-nav" style="display:none">
+    <a href="../index.html" class="midnight-back">&larr; Back to civic.games</a>
+  </div>
 </div>
 
 <script src="js/game.js"></script>

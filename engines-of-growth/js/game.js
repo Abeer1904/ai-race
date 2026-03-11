@@ -560,6 +560,7 @@ function renderLogo() {
 
 function renderBrandBar(subtitle) {
   return `<div class="brand-bar">
+    <a href="../index.html" class="brand-bar-back">&larr; civic.games</a>
     ${renderLogo()}
     <div class="game-counter">${subtitle || 'Game 2 of 6'}</div>
   </div>`;
@@ -958,6 +959,7 @@ function renderOutcome() {
       </div>
       <button class="btn btn-primary btn-full" onclick="openInsightReport()" style="margin-bottom:10px;background:var(--amber);color:var(--ink);border-color:var(--amber)">Download Insight Report →</button>
       <button class="btn btn-full" onclick="location.reload()">Play again</button>
+      <a href="../index.html" class="btn btn-full" style="margin-top:8px;text-align:center;display:block">&larr; Back to civic.games</a>
       <div style="padding-top:32px;border-top:1px solid var(--border);margin-top:32px">
         <div class="giz-note">First built with support from <em>FNF</em></div>
         <div class="copyright-line">civic.games · Civic Games Lab<br>

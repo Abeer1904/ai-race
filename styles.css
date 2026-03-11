@@ -28,6 +28,11 @@
   align-items: center;
 }
 .brand-bar svg { display: block; }
+.brand-bar-back {
+  font-size: 9px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase;
+  color: rgba(234,229,208,.3); text-decoration: none; transition: color .15s;
+}
+.brand-bar-back:hover { color: var(--amber); }
 .game-counter {
   font-size: 9px; font-weight: 800;
   letter-spacing: .2em; text-transform: uppercase;

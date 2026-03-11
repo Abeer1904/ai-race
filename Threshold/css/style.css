@@ -180,7 +180,10 @@
     color: var(--green-dim);
     letter-spacing: 1px;
   }
-  .topbar-left { color: var(--amber); font-size: 12px; letter-spacing: 2px; }
+  .topbar-left { color: var(--amber); font-size: 12px; letter-spacing: 2px; display: flex; align-items: center; gap: 10px; }
+  .topbar-back { color: rgba(232,170,61,0.5); text-decoration: none; font-size: 10px; letter-spacing: 1.5px; transition: color 0.15s; }
+  .topbar-back:hover { color: var(--amber); }
+  .topbar-sep { color: var(--border); font-size: 10px; }
   .topbar-right { display: flex; gap: 24px; }
 
   /* MAIN PANEL (left) */
@@ -509,8 +512,14 @@
     font-size: 13px;
     cursor: pointer;
     letter-spacing: 2px;
+    text-decoration: none;
+    display: inline-block;
   }
   .replay-btn:hover { background: rgba(232,170,61,0.1); }
+  .outcome-actions { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 32px; }
+  .outcome-actions .replay-btn { margin-top: 0; }
+  .replay-btn-back { color: rgba(232,170,61,0.5); border-color: rgba(232,170,61,0.25); font-size: 11px; }
+  .replay-btn-back:hover { color: var(--amber); border-color: var(--amber-dim); background: rgba(232,170,61,0.05); }
 
   /* MIDNIGHT SCREEN */
   #midnight-screen {
@@ -523,6 +532,16 @@
     justify-content: center;
     z-index: 200;
   }
+  #midnight-nav { margin-top: 32px; text-align: center; }
+  .midnight-back {
+    color: rgba(255,255,255,0.25);
+    text-decoration: none;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 2px;
+    transition: color 0.2s;
+  }
+  .midnight-back:hover { color: rgba(255,255,255,0.6); }
   #midnight-lines { text-align: center; }
   .midnight-line {
     font-size: 13px;

@@ -1183,6 +1183,8 @@ function showMidnight() {
         el.style.animation = 'fadeIn 2s forwards';
         el.onclick = ()=>location.reload();
         lines.appendChild(el);
+        const nav = document.getElementById('midnight-nav');
+        if (nav) { nav.style.display = 'block'; nav.style.animation = 'fadeIn 2s forwards'; }
       } else {
         const el = document.createElement('div');
         el.className = 'midnight-line';

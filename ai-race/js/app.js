@@ -409,6 +409,7 @@ function render() {
 
 function renderIntro() {
   return `<div class="screen"><div class="inner">
+    <div class="game-nav"><a href="../index.html" class="game-nav-back">&larr; civic.games</a></div>
     <div class="logo-wrap">${LOGO_SVG}</div>
     <div class="game-title">AI Race</div>
     <div class="game-sub">An AI Governance Simulation</div>
@@ -693,6 +694,7 @@ function renderShare() {
       <button class="btn btn-primary" id="copy-btn">Copy text</button>
       <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://civic.games/ai-race" target="_blank" rel="noopener" class="btn">LinkedIn</a>
       <button class="btn" id="replay-btn">Play again</button>
+      <a href="../index.html" class="btn">&#8592; civic.games</a>
     </div>
 
     <div class="footer-credits">
