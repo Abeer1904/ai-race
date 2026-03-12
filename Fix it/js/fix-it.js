@@ -293,6 +293,7 @@ const state = {
   selectedSolutions: [],
   log: [],
   ended: false,
+  activeSolutions: [],
   history: { tiles: [], categories: {} }
 };
 
@@ -428,6 +429,7 @@ function resetState() {
   state.selectedSolutions = [];
   state.log = [];
   state.ended = false;
+  state.activeSolutions = [];
   state.history = { tiles: [], categories: {} };
 }
 
@@ -543,6 +545,15 @@ function renderOfferChoices() {
       tile.housing ? `<span class="tile-chip">Housing +${tile.housing}</span>` : ""
     ].join("");
 
+    // Dependency evaluation for this offer
+    const depEval = evaluateOfferTile(tile, state.city, [], state.activeSolutions, state.hazard);
+    const depChips = depEval.notes.slice(0, 2).map(n => {
+      const cls = n.startsWith("Risk:") ? "tile-chip dep-risk" :
+                  n.startsWith("Penalty:") ? "tile-chip dep-penalty" :
+                  "tile-chip dep-support";
+      return `<span class="${cls}">${n}</span>`;
+    }).join("");
+
     const div = document.createElement("div");
     div.className = `tile-row${isSel ? " selected" : ""}`;
     div.innerHTML = `
@@ -556,6 +567,7 @@ function renderOfferChoices() {
           ${extraChips}
           ${tagChips}
         </div>
+        ${depChips ? `<div class="tile-row-dep">${depChips}</div>` : ""}
       </div>
       <button class="tile-row-select ${isSel ? "is-selected" : ""}"
               style="border:1.5px solid ${isSel ? "transparent" : "rgba(23,48,58,0.2)"}">
@@ -625,6 +637,7 @@ function placeTile(tile) {
   if (["Slums", "Urban Village", "Rural Village", "Affordable Housing", "High-rise Housing"].includes(tile.name)) {
     state.pressures.migration = clamp(state.pressures.migration - 2, 0, 100);
   }
+  recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
 }
 
 function endBuildStep() {
@@ -666,6 +679,10 @@ function advanceBasePressures() {
   if (state.pressures.migration > 74) {
     state.ideologies.builder += 1;
     state.ideologies.citizen += 1;
+  }
+  if (checkWasteOverflow(state.city)) {
+    state.aqi = clamp(state.aqi + 1, 0, 12);
+    addLog("Waste overflow: no waste system in a city of this size. AQI worsened +1.");
   }
 }
 
@@ -886,6 +903,7 @@ function confirmSolutions() {
       state.ideologies[k] = Math.max(0, state.ideologies[k] + v);
     });
     addLog(`Solution adopted: ${card.headline}. ${getHazardLabel()} ${formatSigned(stressDelta)}.`);
+    if (!state.activeSolutions.includes(card.headline)) state.activeSolutions.push(card.headline);
   });
   state.solutionChoices = [];
   state.selectedSolutions = [];
@@ -976,6 +994,7 @@ function applyTileEffect(effect) {
       updateTileFromTemplate(target, chosen, `${effect.from} was replaced by ${chosen}.`);
     }
   }
+  recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
   state.aqi = calculateStructuralAQI();
 }
 
@@ -1048,10 +1067,14 @@ function renderBoard() {
     div.className = classes.join(" ");
     const pollutionDots = Array.from({ length: tile.pollutionTokens }, () => `<span class="token pollution"></span>`).join("");
     const solutionDots = Array.from({ length: tile.solutionTokens }, () => `<span class="token solution"></span>`).join("");
+    const depNote = (tile.depEval && tile.depEval.notes && tile.depEval.notes.length)
+      ? `<div class="dep-note">${tile.depEval.notes[0]}</div>`
+      : "";
     div.innerHTML = `
       <div class="tile-name">${tile.name}</div>
       <div class="tile-meta"><span>${tile.name === "GPO" ? "Reference" : `AQI ${formatSigned(tile.disabled ? 0 : tile.aqiShift)}`}</span><span>${tile.name === "GPO" ? "Centre" : `DEV +${tile.development}`}</span></div>
       ${tile.name === "GPO" ? "" : `<div class="token-row">${pollutionDots}${solutionDots}</div>`}
+      ${tile.name === "GPO" ? "" : depNote}
     `;
     host.appendChild(div);
   });
@@ -1081,6 +1104,7 @@ function renderLog() {
 
 function render() {
   state.aqi = calculateStructuralAQI();
+  recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
   els.roundChip.textContent = `${Math.min(state.round, 8)} / 8`;
   els.phaseChip.textContent = state.round <= 3 ? "Foundation" : "Pressure";
   els.windChip.textContent = `${windIcon(state.wind)} ${state.wind}`;
