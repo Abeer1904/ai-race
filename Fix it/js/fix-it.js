@@ -72,37 +72,37 @@ TILES.forEach(tile => {
 });
 
 const POLLUTION_CARDS = [
-  { headline: "Commercial trucks from neighbouring cities keep delivering pollution", targets: ["Highway"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null },
+  { headline: "Commercial trucks from neighbouring cities keep delivering pollution", targets: ["Large-scale Industry", "Airport", "Railway"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null },
   { headline: "Air pollution from thermal power plants impact the health of both near and far", targets: ["Thermal Power Plant"], pollutionTokens: 4, aqi: 2, weaken: "citizen", tileEffect: { type: "add", tile: "Thermal Power Plant" } },
   { headline: "More than 40% households use dirty fuel for cooking, which is one of the biggest hidden polluters", targets: ["Slums", "Rural Village", "Urban Village"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
   { headline: "Plastic waste burning becomes a bigger enemy of air quality than stubble burning", targets: ["City Landfill", "Residential Landfill"], pollutionTokens: 4, aqi: 2, weaken: "citizen", tileEffect: null },
-  { headline: "The poor quality of roads leads to heavy traffic and leaves citizens choking", targets: ["Roadways"], requireColor: ["orange", "red"], pollutionTokens: 4, aqi: 1, weaken: "citizen", tileEffect: null },
+  { headline: "The poor quality of roads leads to heavy traffic and leaves citizens choking", targets: ["Petrol Pump", "Large-scale Industry", "SSI"], pollutionTokens: 4, aqi: 1, weaken: "citizen", tileEffect: null },
   { headline: "A large fire breaks out in the landfill and haze envelops the city", targets: ["City Landfill"], pollutionTokens: 4, aqi: 3, weaken: "politician", tileEffect: null },
   { headline: "E-waste and plastic burning put nearby neighbourhoods at risk", targets: ["City Landfill", "Residential Landfill"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
-  { headline: "Open burning of leaves continues in parks, on roads, and near housing complexes", targets: ["High-rise Housing", "Public Park", "Roadways"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
+  { headline: "Open burning of leaves continues in parks and near housing complexes", targets: ["High-rise Housing", "Public Park", "Barren Land"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
   { headline: "Illegal burning continues in the landfill to clear space for more garbage", targets: ["City Landfill"], pollutionTokens: 0, aqi: 2, weaken: "policymaker", tileEffect: null },
   { headline: "Smokey chimneys leave people from nearby villages choking", targets: ["Thermal Power Plant"], pollutionTokens: 2, aqi: 3, weaken: "citizen", tileEffect: null },
   { headline: "Coal dependence remains high and the transition to clean fuels stalls", targets: ["Thermal Power Plant"], pollutionTokens: 0, aqi: 2, weaken: null, tileEffect: { type: "flipGreenFuel" } },
   { headline: "During a heatwave, the administration fires up an old coal plant to meet electricity demand", targets: ["Thermal Power Plant"], pollutionTokens: 0, aqi: 1, weaken: "policymaker", tileEffect: { type: "add", tile: "Thermal Power Plant" } },
   { headline: "Hotels protect indoor air for a few while pollution spreads outside", targets: ["Hotel"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
-  { headline: "Vehicles account for more than half of total air pollution in the city", targets: ["Roadways"], requireColor: ["red"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null }
+  { headline: "Vehicles account for more than half of total air pollution in the city", targets: ["Petrol Pump", "DG Set"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null }
 ];
 
 const SOLUTION_CARDS = [
-  { headline: "Install weigh-in-motion bridges at city borders", solution: "Prevent overloading by commercial trucks", targets: ["Highway"], aqi: -2, addSolutions: 0, removePollution: 2, tileEffect: null, logicShift: { policymaker: 1 } },
+  { headline: "Install weigh-in-motion systems at freight entry points", solution: "Reduce overloading impact from commercial vehicles", targets: ["Airport", "Railway", "Large-scale Industry"], aqi: -2, addSolutions: 0, removePollution: 2, tileEffect: null, logicShift: { policymaker: 1 } },
   { headline: "Cover 500MW demand with solar generation", solution: "Replace part of thermal dependence", targets: ["Thermal Power Plant"], aqi: -2, addSolutions: 2, removePollution: 0, tileEffect: { type: "flipTo", from: "Thermal Power Plant", to: "Solar Power Plant" }, logicShift: { policymaker: 2, activist: 1 } },
   { headline: "Accelerate LPG penetration for cooking in households", solution: "Reduce dirty-fuel emissions", targets: ["Slums", "Urban Village", "Rural Village"], aqi: -1, addSolutions: 2, removePollution: 1, tileEffect: null, logicShift: { citizen: 1, policymaker: 1 } },
   { headline: "Strict implementation of waste-management rules", solution: "Solid, hazardous, e-waste, biomedical, plastic and C&D", targets: ["City Landfill", "Residential Landfill"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: { type: "add", tile: "Sewage Treatment Plant" }, logicShift: { policymaker: 2 } },
-  { headline: "Undertake road widening and improvement", solution: "Decongest roads", targets: ["Roadways"], aqi: -2, addSolutions: 0, removePollution: 2, tileEffect: null, logicShift: { builder: 1, policymaker: 1 } },
+  { headline: "Invest in last-mile connectivity to reduce private vehicle use", solution: "Ease congestion by filling public transport gaps", targets: ["Petrol Pump", "Bus Stop", "Metro"], aqi: -2, addSolutions: 0, removePollution: 2, tileEffect: null, logicShift: { builder: 1, policymaker: 1 } },
   { headline: "Move toward decentralised waste infrastructure", solution: "Reduce dependence on one giant landfill", targets: ["City Landfill"], aqi: -2, addSolutions: 2, removePollution: 1, tileEffect: null, logicShift: { policymaker: 2, activist: 1 } },
   { headline: "Enforce extended producer responsibility", solution: "Track e-waste and plastic waste properly", targets: ["City Landfill", "Residential Landfill"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: null, logicShift: { policymaker: 1 } },
-  { headline: "Construct a methane power plant", solution: "Turn leaf and wet waste into transition energy", targets: ["Methane Power Plant", "Public Park", "Roadways", "High-rise Housing"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: { type: "add", tile: "Methane Power Plant" }, logicShift: { policymaker: 1, activist: 1 } },
+  { headline: "Construct a methane power plant", solution: "Turn leaf and wet waste into transition energy", targets: ["Methane Power Plant", "Public Park", "City Landfill", "High-rise Housing"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: { type: "add", tile: "Methane Power Plant" }, logicShift: { policymaker: 1, activist: 1 } },
   { headline: "Train municipalities and SPCBs on advanced integrated waste management", solution: "Cut illegal burning as the only resort", targets: ["City Landfill", "Residential Landfill"], aqi: -2, addSolutions: 0, removePollution: 1, tileEffect: null, logicShift: { policymaker: 2 } },
   { headline: "Introduce revised emission standards for thermal plants", solution: "Tighten controls on existing and upcoming plants", targets: ["Thermal Power Plant"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: null, logicShift: { policymaker: 2 } },
   { headline: "Control pricing of alternative fuels", solution: "Make EV and CNG transitions viable", targets: ["Petrol Pump"], aqi: -1, addSolutions: 0, removePollution: 0, tileEffect: { type: "flipToChoice", from: "Petrol Pump", choices: ["EV Charging Station", "CNG Station"] }, logicShift: { policymaker: 2, activist: 1 } },
   { headline: "Phase out older coal plants and convert some to gas", solution: "Use methane as a transition bridge", targets: ["Thermal Power Plant"], aqi: -1, addSolutions: 0, removePollution: 0, tileEffect: { type: "flipTo", from: "Thermal Power Plant", to: "Methane Power Plant" }, logicShift: { policymaker: 2 } },
   { headline: "Stop using coal and firewood in hotels and open eateries", solution: "Clean cooking in hospitality sector", targets: ["Hotel"], aqi: -1, addSolutions: 1, removePollution: 0, tileEffect: null, logicShift: { citizen: 1, policymaker: 1 } },
-  { headline: "Enhance public transport and shift travel behaviour", solution: "Add bus stop or metro service", targets: ["Roadways"], aqi: -2, addSolutions: 0, removePollution: 0, tileEffect: { type: "addChoice", choices: ["Bus Stop", "Metro"] }, logicShift: { policymaker: 2, activist: 1 } }
+  { headline: "Enhance public transport and shift travel behaviour", solution: "Add bus stop or metro service", targets: ["Petrol Pump", "DG Set", "Large-scale Industry"], aqi: -2, addSolutions: 0, removePollution: 0, tileEffect: { type: "addChoice", choices: ["Bus Stop", "Metro"] }, logicShift: { policymaker: 2, activist: 1 } }
 ];
 
 const HEAT_CARDS = [
@@ -125,7 +125,7 @@ const HEAT_CARDS = [
   },
   {
     headline: "Outdoor Labour Exposure",
-    targets: ["Construction", "Highway", "Roadways", "Weekly Market"],
+    targets: ["Construction", "Large-scale Industry", "SSI", "Weekly Market"],
     heatTokens: 2, stress: 1, weaken: "builder", tileEffect: null,
     developmentEffect: -2
   },
@@ -142,7 +142,7 @@ const HEAT_CARDS = [
   },
   {
     headline: "Transit Shelter Failure",
-    targets: ["Bus Stop", "Railway", "Roadways"],
+    targets: ["Bus Stop", "Railway", "Metro"],
     heatTokens: 2, stress: 1, weaken: "citizen", tileEffect: null
   },
   {
@@ -167,7 +167,7 @@ const HEAT_CARDS = [
   },
   {
     headline: "Early Summer Heatwave",
-    targets: ["Construction", "Bus Stop", "Roadways", "Slums"],
+    targets: ["Construction", "Bus Stop", "Agricultural Land", "Slums"],
     heatTokens: 2, stress: 1, weaken: "builder", tileEffect: null,
     pressureEffect: { water: 1, electricity: 1 }
   }
@@ -198,7 +198,7 @@ const HEAT_SOLUTIONS = [
   {
     headline: "Shift Work Hours",
     solution: "Move outdoor work away from peak heat windows.",
-    targets: ["Construction", "Highway", "Roadways", "Weekly Market"],
+    targets: ["Construction", "Large-scale Industry", "SSI", "Weekly Market"],
     stress: -1, addSolutions: 1, removeHeat: 1, tileEffect: null,
     logicShift: { builder: 1, policymaker: 1 }
   },
@@ -233,7 +233,7 @@ const HEAT_SOLUTIONS = [
   {
     headline: "Urban Greening and Shade Corridors",
     solution: "Protect green spaces and expand shade corridors.",
-    targets: ["Forest", "Public Park", "Roadways", "School"],
+    targets: ["Forest", "Public Park", "Agricultural Land", "School"],
     stress: -2, addSolutions: 2, removeHeat: 1, tileEffect: null,
     logicShift: { activist: 2 }
   },
@@ -552,8 +552,10 @@ function renderOfferChoices() {
     // Dependency evaluation for this offer
     const depEval = evaluateOfferTile(tile, state.city, [], state.activeSolutions, state.hazard);
 
-    // Placement constraint evaluation
-    const placementResult = validatePlacement(tile.name, state.city.length, state.city, BOARD_SLOTS);
+    // Placement constraint evaluation.
+    // If one offer is already selected, the next tile lands at city.length+1 (the slot after that pick).
+    const futureSlot = state.city.length + (state.selectedOffers.length > 0 && !state.selectedOffers.includes(tile.id) ? 1 : 0);
+    const placementResult = validatePlacement(tile.name, futureSlot, state.city, BOARD_SLOTS);
     const placeNote = placementNote(placementResult, tile.name);
 
     const depChips = depEval.notes.slice(0, 2).map(n => {
@@ -727,14 +729,14 @@ function drawProblemCard() {
     let score = 1;
     if (state.hazard === "air") {
       if (card.targets.includes("Thermal Power Plant") && state.pressures.electricity > 55) score += 3;
-      if (card.targets.includes("Roadways") && state.city.some(t => t.name === "Highway")) score += 2;
+      if ((card.targets.includes("Petrol Pump") || card.targets.includes("Large-scale Industry")) && state.trafficPressure && state.trafficPressure.jamCount > 0) score += 2;
       if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.pressures.migration > 45) score += 2;
       if (card.targets.includes("Slums") && state.pressures.migration > 55) score += 2;
     } else {
       if (card.targets.includes("Hospital") && state.pressures.electricity > 50) score += 2;
       if (card.targets.includes("Slums") && state.pressures.water > 50) score += 2;
       if (card.targets.includes("Construction") && state.pressures.unemployment > 45) score += 1;
-      if (card.targets.includes("Bus Stop") && state.city.some(t => t.name === "Roadways")) score += 1;
+      if (card.targets.includes("Bus Stop") && state.trafficPressure && state.trafficPressure.busyCount > 1) score += 1;
     }
     return { card, score };
   });
@@ -839,7 +841,7 @@ function generateSolutions() {
     let score = 1;
     if (state.hazard === "air") {
       if (card.targets.includes("Thermal Power Plant") && state.city.some(t => t.name === "Thermal Power Plant")) score += 3;
-      if ((card.targets.includes("Roadways") || card.targets.includes("Highway")) && state.aqi > 5) score += 2;
+      if ((card.targets.includes("Petrol Pump") || card.targets.includes("Large-scale Industry")) && state.trafficPressure && state.trafficPressure.jamCount > 0) score += 2;
       if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.city.some(t => ["City Landfill", "Residential Landfill"].includes(t.name))) score += 2;
       if ((card.targets.includes("Slums") || card.targets.includes("Urban Village") || card.targets.includes("Rural Village")) && state.pressures.migration > 45) score += 2;
       if (card.targets.includes("Petrol Pump") && state.city.some(t => t.name === "Petrol Pump")) score += 2;

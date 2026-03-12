@@ -439,15 +439,16 @@ body {
 .tile-chip.place-mixed    { background: rgba(23,48,58,0.08);  color: #334d57; }
 .tile-chip.place-neutral  { display: none; }
 
-/* Blocked tile row in offer grid */
+/* Blocked tile row in offer grid — keep interactive so user can read why */
 .tile-row.placement-blocked {
-  opacity: 0.6;
-  pointer-events: none;
+  opacity: 0.55;
+  border-left: 3px solid rgba(160,40,30,0.5);
 }
 .tile-row-select.is-blocked {
   background: rgba(160,40,30,0.12);
   color: #8a2e22;
   cursor: not-allowed;
+  pointer-events: none;
 }
 
 /* Traffic note on board tiles */
