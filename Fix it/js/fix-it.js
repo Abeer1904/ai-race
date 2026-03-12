@@ -103,6 +103,161 @@ const SOLUTION_CARDS = [
   { headline: "Enhance public transport and shift travel behaviour", solution: "Add bus stop or metro service", targets: ["Roadways"], aqi: -2, addSolutions: 0, removePollution: 0, tileEffect: { type: "addChoice", choices: ["Bus Stop", "Metro"] }, logicShift: { policymaker: 2, activist: 1 } }
 ];
 
+const HEAT_CARDS = [
+  {
+    headline: "Hot Night Trap",
+    targets: ["Slums", "High-rise Housing", "Affordable Housing"],
+    heatTokens: 2, stress: 2, weaken: "citizen", tileEffect: null
+  },
+  {
+    headline: "Water Tankers Run Dry",
+    targets: ["Slums", "Urban Village", "Bus Stop", "Weekly Market"],
+    heatTokens: 2, stress: 1, weaken: "citizen", tileEffect: null,
+    pressureEffect: { water: 2 }
+  },
+  {
+    headline: "Grid Overload",
+    targets: ["Hospital", "High-rise Housing", "DG Set", "Thermal Power Plant"],
+    heatTokens: 2, stress: 2, weaken: "policymaker", tileEffect: null,
+    pressureEffect: { electricity: 2 }
+  },
+  {
+    headline: "Outdoor Labour Exposure",
+    targets: ["Construction", "Highway", "Roadways", "Weekly Market"],
+    heatTokens: 2, stress: 1, weaken: "builder", tileEffect: null,
+    developmentEffect: -2
+  },
+  {
+    headline: "Heatstroke Ward Overflow",
+    targets: ["Hospital"],
+    heatTokens: 2, stress: 2, weaken: "citizen", tileEffect: null
+  },
+  {
+    headline: "Slum Heat Pocket",
+    targets: ["Slums", "Affordable Housing", "Urban Village"],
+    heatTokens: 3, stress: 2, weaken: "citizen", tileEffect: null,
+    pressureEffect: { migration: 1 }
+  },
+  {
+    headline: "Transit Shelter Failure",
+    targets: ["Bus Stop", "Railway", "Roadways"],
+    heatTokens: 2, stress: 1, weaken: "citizen", tileEffect: null
+  },
+  {
+    headline: "Urban Heat Island Surge",
+    targets: ["High-rise Housing", "Mall", "Pvt Office", "Large-scale Industry"],
+    heatTokens: 3, stress: 2, weaken: "activist", tileEffect: null
+  },
+  {
+    headline: "Heat Alert Misses the Vulnerable",
+    targets: ["Slums", "Urban Village", "Rural Village", "Weekly Market"],
+    heatTokens: 1, stress: 1, weaken: "citizen", tileEffect: null
+  },
+  {
+    headline: "Schoolyard Heat Exposure",
+    targets: ["School", "College"],
+    heatTokens: 2, stress: 1, weaken: "citizen", tileEffect: null
+  },
+  {
+    headline: "Cooling Centre Shortfall",
+    targets: ["Govt Office", "School", "Public Park", "Hospital"],
+    heatTokens: 2, stress: 2, weaken: "policymaker", tileEffect: null
+  },
+  {
+    headline: "Early Summer Heatwave",
+    targets: ["Construction", "Bus Stop", "Roadways", "Slums"],
+    heatTokens: 2, stress: 1, weaken: "builder", tileEffect: null,
+    pressureEffect: { water: 1, electricity: 1 }
+  }
+];
+
+const HEAT_SOLUTIONS = [
+  {
+    headline: "Cool Roof Programme",
+    solution: "Deploy reflective roofs on vulnerable buildings and settlements.",
+    targets: ["High-rise Housing", "Slums", "Affordable Housing", "School", "Hospital"],
+    stress: -2, addSolutions: 2, removeHeat: 2, tileEffect: null,
+    logicShift: { policymaker: 1, citizen: 1 }
+  },
+  {
+    headline: "Cooling Centres and Shelters",
+    solution: "Open accessible cooling spaces in public buildings and parks.",
+    targets: ["Public Park", "Govt Office", "School", "Hospital"],
+    stress: -2, addSolutions: 2, removeHeat: 1, tileEffect: null,
+    logicShift: { citizen: 1, policymaker: 1 }
+  },
+  {
+    headline: "Emergency Water Points",
+    solution: "Set up drinking-water points, tankers, and ORS distribution.",
+    targets: ["Bus Stop", "Weekly Market", "Slums", "Urban Village", "Railway"],
+    stress: -1, addSolutions: 1, removeHeat: 2, tileEffect: null,
+    logicShift: { citizen: 1 }
+  },
+  {
+    headline: "Shift Work Hours",
+    solution: "Move outdoor work away from peak heat windows.",
+    targets: ["Construction", "Highway", "Roadways", "Weekly Market"],
+    stress: -1, addSolutions: 1, removeHeat: 1, tileEffect: null,
+    logicShift: { builder: 1, policymaker: 1 }
+  },
+  {
+    headline: "Heat Health Preparedness",
+    solution: "Stock ORS, cooling beds, IV fluids, and emergency care supplies.",
+    targets: ["Hospital"],
+    stress: -2, addSolutions: 2, removeHeat: 1, tileEffect: null,
+    logicShift: { citizen: 1, policymaker: 1 }
+  },
+  {
+    headline: "Ward-Level Heat Volunteers",
+    solution: "Activate local teams to identify and assist vulnerable residents.",
+    targets: ["Slums", "Urban Village", "Rural Village", "Govt Office"],
+    stress: -1, addSolutions: 1, removeHeat: 1, tileEffect: null,
+    logicShift: { citizen: 1 }
+  },
+  {
+    headline: "Heat Alert Broadcast",
+    solution: "Use radio, SMS, public announcements, and local networks for alerts.",
+    targets: ["School", "Govt Office", "Bus Stop", "Weekly Market"],
+    stress: -1, addSolutions: 1, removeHeat: 0, tileEffect: null,
+    logicShift: { policymaker: 1, citizen: 1 }
+  },
+  {
+    headline: "Shade at Public Places",
+    solution: "Add shaded waiting areas at public gathering points.",
+    targets: ["Bus Stop", "Weekly Market", "Railway", "Public Park"],
+    stress: -1, addSolutions: 2, removeHeat: 1, tileEffect: null,
+    logicShift: { activist: 1, policymaker: 1 }
+  },
+  {
+    headline: "Urban Greening and Shade Corridors",
+    solution: "Protect green spaces and expand shade corridors.",
+    targets: ["Forest", "Public Park", "Roadways", "School"],
+    stress: -2, addSolutions: 2, removeHeat: 1, tileEffect: null,
+    logicShift: { activist: 2 }
+  },
+  {
+    headline: "Rainwater Harvesting and Water Storage",
+    solution: "Strengthen local water resilience during heat periods.",
+    targets: ["Sewage Treatment Plant", "Govt Office", "Agricultural Land", "School"],
+    stress: -1, addSolutions: 1, removeHeat: 0, tileEffect: null,
+    logicShift: { policymaker: 1 }
+  },
+  {
+    headline: "Power Backup for Health and Cooling",
+    solution: "Protect hospitals and cooling spaces during outages.",
+    targets: ["Hospital", "Govt Office", "School", "DG Set"],
+    stress: -1, addSolutions: 1, removeHeat: 0, tileEffect: null,
+    logicShift: { policymaker: 1 }
+  },
+  {
+    headline: "Vulnerability Mapping and Hotspot Planning",
+    solution: "Identify neighbourhoods and groups most exposed to extreme heat.",
+    targets: ["Slums", "High-rise Housing", "Bus Stop", "Weekly Market", "Hospital"],
+    stress: -1, addSolutions: 1, removeHeat: 0, tileEffect: null,
+    logicShift: { policymaker: 2 }
+  }
+];
+
 const IDENTITY_DESCRIPTIONS = {
   builder: "You repeatedly privileged visible growth: roads, construction, malls, airports, and dense building expansion.",
   industrialist: "You leaned toward jobs, throughput, power, and industry — even when these choices increased structural pollution risk.",
@@ -123,6 +278,7 @@ const state = {
   round: 1,
   phase: "foundation",
   pollutionResolved: 0,
+  hazard: "air",
   wind: ["North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West"][Math.floor(Math.random() * 8)],
   aqi: 3,
   development: 18,
@@ -273,6 +429,31 @@ function resetState() {
   state.log = [];
   state.ended = false;
   state.history = { tiles: [], categories: {} };
+}
+
+// ── Hazard helpers ──
+function getProblemDeck() {
+  return state.hazard === "heat" ? HEAT_CARDS : POLLUTION_CARDS;
+}
+
+function getSolutionDeck() {
+  return state.hazard === "heat" ? HEAT_SOLUTIONS : SOLUTION_CARDS;
+}
+
+function getHazardLabel() {
+  return state.hazard === "heat" ? "Heat Stress" : "AQI";
+}
+
+function getHazardPhaseText() {
+  return state.hazard === "heat"
+    ? "Pressure phase — build, absorb heat shocks, then mitigate"
+    : "Pressure phase — build, absorb pollution, then mitigate";
+}
+
+function getHazardDraftText() {
+  return state.hazard === "heat"
+    ? "Choose two development tiles before the next heat shock"
+    : "Choose two development tiles before the next pollution shock";
 }
 
 function getOfferWeights() {
@@ -493,19 +674,32 @@ function cardIsPlayable(card) {
   return present.some(tile => card.targets.includes(tile.name) && (!card.requireColor || card.requireColor.includes(tile.color)));
 }
 
-function drawPollutionCard() {
-  const playable = POLLUTION_CARDS.filter(cardIsPlayable);
+function drawProblemCard() {
+  const deck = getProblemDeck();
+  const playable = deck.filter(cardIsPlayable);
+
   if (!playable.length) {
-    return { headline: "Diffuse urban pollution spreads without a single obvious trigger", targets: [], pollutionTokens: 0, aqi: 1, weaken: null, tileEffect: null };
+    return state.hazard === "heat"
+      ? { headline: "Diffuse heat stress spreads across the city", targets: [], heatTokens: 0, stress: 1, weaken: null, tileEffect: null }
+      : { headline: "Diffuse urban pollution spreads without a single obvious trigger", targets: [], pollutionTokens: 0, aqi: 1, weaken: null, tileEffect: null };
   }
+
   const weighted = playable.map(card => {
     let score = 1;
-    if (card.targets.includes("Thermal Power Plant") && state.pressures.electricity > 55) score += 3;
-    if (card.targets.includes("Roadways") && state.city.some(t => t.name === "Highway")) score += 2;
-    if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.pressures.migration > 45) score += 2;
-    if (card.targets.includes("Slums") && state.pressures.migration > 55) score += 2;
+    if (state.hazard === "air") {
+      if (card.targets.includes("Thermal Power Plant") && state.pressures.electricity > 55) score += 3;
+      if (card.targets.includes("Roadways") && state.city.some(t => t.name === "Highway")) score += 2;
+      if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.pressures.migration > 45) score += 2;
+      if (card.targets.includes("Slums") && state.pressures.migration > 55) score += 2;
+    } else {
+      if (card.targets.includes("Hospital") && state.pressures.electricity > 50) score += 2;
+      if (card.targets.includes("Slums") && state.pressures.water > 50) score += 2;
+      if (card.targets.includes("Construction") && state.pressures.unemployment > 45) score += 1;
+      if (card.targets.includes("Bus Stop") && state.city.some(t => t.name === "Roadways")) score += 1;
+    }
     return { card, score };
   });
+
   const total = weighted.reduce((sum, item) => sum + item.score, 0);
   let roll = Math.random() * total;
   for (const item of weighted) {
@@ -516,28 +710,53 @@ function drawPollutionCard() {
 }
 
 function resolvePollutionPhase() {
-  const card = drawPollutionCard();
+  const card = drawProblemCard();
   state.currentPollutionCard = card;
   state.pollutionResolved += 1;
-  state.aqi = clamp(state.aqi + card.aqi, 0, 12);
+
+  const stressDelta = state.hazard === "heat" ? card.stress : card.aqi;
+  state.aqi = clamp(state.aqi + stressDelta, 0, 12);
+
   if (card.weaken && state.ideologies[card.weaken] !== undefined) {
     state.ideologies[card.weaken] = Math.max(0, state.ideologies[card.weaken] - 1);
   }
-  placePollutionTokens(card.targets, card.pollutionTokens || 0);
+
+  if (card.pressureEffect) {
+    Object.entries(card.pressureEffect).forEach(([k, v]) => {
+      state.pressures[k] = clamp(state.pressures[k] + v, 0, 100);
+    });
+  }
+
+  if (typeof card.developmentEffect === "number") {
+    state.development = Math.max(0, state.development + card.developmentEffect);
+  }
+
+  if (state.hazard === "heat") {
+    placePollutionTokens(card.targets, card.heatTokens || 0);
+  } else {
+    placePollutionTokens(card.targets, card.pollutionTokens || 0);
+  }
+
   applyTileEffect(card.tileEffect);
-  addLog(`Pollution shock: ${card.headline} AQI ${formatSigned(card.aqi)}.`);
+
+  addLog(`${state.hazard === "heat" ? "Heat shock" : "Pollution shock"}: ${card.headline} ${getHazardLabel()} ${formatSigned(stressDelta)}.`);
+
   els.currentEventCard.className = "event-card active";
   els.currentEventCard.innerHTML = `
-    <div class="event-headline">${card.headline}</div>
-    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;">
-      <span class="tile-chip aqi-neg">AQI ${formatSigned(card.aqi)}</span>
-      <span class="tile-chip">Tokens: ${card.pollutionTokens || 0}</span>
+    <strong>${card.headline}</strong>
+    <div style="margin-top:8px;">
+      Targets: ${card.targets.length ? card.targets.join(", ") : "Diffuse urban sources"}<br/>
+      ${state.hazard === "heat" ? "Heat tokens" : "Pollution tokens"}: ${state.hazard === "heat" ? (card.heatTokens || 0) : (card.pollutionTokens || 0)}<br/>
+      ${getHazardLabel()} shift: ${formatSigned(stressDelta)}
     </div>
-    <div class="event-meta">Targets: ${card.targets.length ? card.targets.join(", ") : "Diffuse urban sources"}</div>
   `;
+
   generateSolutions();
   render();
-  if (state.aqi >= 12) evaluateEnd("AQI crossed the meter.");
+
+  if (state.aqi >= 12) {
+    evaluateEnd(`${getHazardLabel()} crossed the meter.`);
+  }
 }
 
 function placePollutionTokens(targetNames, amount) {
@@ -571,17 +790,29 @@ function calculateStructuralAQI() {
 
 function generateSolutions() {
   state.selectedSolutions = [];
-  const playable = SOLUTION_CARDS.filter(card => card.targets.some(target => state.city.some(tile => tile.name === target)));
-  const pool = playable.length ? playable : [];
-  const scored = pool.map(card => {
+  const deck = getSolutionDeck();
+
+  const playable = deck.filter(card =>
+    card.targets.some(target => state.city.some(tile => tile.name === target))
+  );
+
+  const scored = playable.map(card => {
     let score = 1;
-    if (card.targets.includes("Thermal Power Plant") && state.city.some(t => t.name === "Thermal Power Plant")) score += 3;
-    if ((card.targets.includes("Roadways") || card.targets.includes("Highway")) && state.aqi > 5) score += 2;
-    if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.city.some(t => ["City Landfill", "Residential Landfill"].includes(t.name))) score += 2;
-    if ((card.targets.includes("Slums") || card.targets.includes("Urban Village") || card.targets.includes("Rural Village")) && state.pressures.migration > 45) score += 2;
-    if (card.targets.includes("Petrol Pump") && state.city.some(t => t.name === "Petrol Pump")) score += 2;
+    if (state.hazard === "air") {
+      if (card.targets.includes("Thermal Power Plant") && state.city.some(t => t.name === "Thermal Power Plant")) score += 3;
+      if ((card.targets.includes("Roadways") || card.targets.includes("Highway")) && state.aqi > 5) score += 2;
+      if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.city.some(t => ["City Landfill", "Residential Landfill"].includes(t.name))) score += 2;
+      if ((card.targets.includes("Slums") || card.targets.includes("Urban Village") || card.targets.includes("Rural Village")) && state.pressures.migration > 45) score += 2;
+      if (card.targets.includes("Petrol Pump") && state.city.some(t => t.name === "Petrol Pump")) score += 2;
+    } else {
+      if (card.targets.includes("Hospital") && state.pressures.electricity > 50) score += 2;
+      if (card.targets.includes("Slums") && state.pressures.water > 50) score += 2;
+      if (card.targets.includes("Bus Stop") && state.city.some(t => t.name === "Bus Stop")) score += 2;
+      if (card.targets.includes("Public Park") && state.aqi > 4) score += 1;
+    }
     return { card, score };
   });
+
   const selected = [];
   while (selected.length < Math.min(3, scored.length) && scored.length) {
     const total = scored.reduce((sum, item) => sum + item.score, 0);
@@ -589,17 +820,15 @@ function generateSolutions() {
     let chosenIndex = 0;
     for (let i = 0; i < scored.length; i++) {
       roll -= scored[i].score;
-      if (roll <= 0) {
-        chosenIndex = i;
-        break;
-      }
+      if (roll <= 0) { chosenIndex = i; break; }
     }
     selected.push(scored.splice(chosenIndex, 1)[0].card);
   }
+
   state.solutionChoices = selected;
   renderSolutions();
   els.eventSection.style.display = state.solutionChoices.length ? "block" : "none";
-  els.confirmSolutionsBtn.style.display = state.solutionChoices.length ? "inline-block" : "none";
+  els.confirmSolutionsBtn.style.display = state.solutionChoices.length ? "inline-flex" : "none";
   els.confirmSolutionsBtn.disabled = true;
 }
 
@@ -608,6 +837,9 @@ function renderSolutions() {
   state.solutionChoices.forEach((card, index) => {
     const div = document.createElement("div");
     div.className = `game-card calm ${state.selectedSolutions.includes(index) ? "selected" : ""}`;
+    const stressDelta = state.hazard === "heat" ? card.stress : card.aqi;
+    const tokenLabel = state.hazard === "heat" ? "heat token" : "solution token";
+    const removeLabel = state.hazard === "heat" ? "Remove heat token" : "Remove pollution token";
     div.innerHTML = `
       <div class="ribbon">Solution</div>
       <div>
@@ -615,9 +847,11 @@ function renderSolutions() {
         <p>${card.solution}</p>
         <div class="pill-row">
           <span class="pill">Targets: ${card.targets.join(", ")}</span>
-          <span class="pill">AQI ${formatSigned(card.aqi)}</span>
-          ${card.addSolutions ? `<span class="pill">+${card.addSolutions} solution token${card.addSolutions > 1 ? "s" : ""}</span>` : ``}
-          ${card.removePollution ? `<span class="pill">Remove ${card.removePollution} pollution token${card.removePollution > 1 ? "s" : ""}</span>` : ``}
+          <span class="pill">${getHazardLabel()} ${formatSigned(stressDelta)}</span>
+          ${card.addSolutions ? `<span class="pill">+${card.addSolutions} ${tokenLabel}${card.addSolutions > 1 ? "s" : ""}</span>` : ``}
+          ${state.hazard === "heat"
+            ? (card.removeHeat ? `<span class="pill">${removeLabel}${card.removeHeat > 1 ? "s" : ""}: ${card.removeHeat}</span>` : ``)
+            : (card.removePollution ? `<span class="pill">${removeLabel}${card.removePollution > 1 ? "s" : ""}: ${card.removePollution}</span>` : ``)}
         </div>
       </div>
       <button class="card-select">${state.selectedSolutions.includes(index) ? "Selected" : "Select solution"}</button>
@@ -639,14 +873,19 @@ function confirmSolutions() {
   const needed = Math.min(2, state.solutionChoices.length);
   if (state.selectedSolutions.length !== needed) return;
   state.selectedSolutions.map(i => state.solutionChoices[i]).forEach(card => {
-    state.aqi = clamp(state.aqi + card.aqi, 0, 12);
+    const stressDelta = state.hazard === "heat" ? card.stress : card.aqi;
+    state.aqi = clamp(state.aqi + stressDelta, 0, 12);
     addSolutionTokens(card.targets, card.addSolutions || 0);
-    removePollutionTokens(card.targets, card.removePollution || 0);
+    if (state.hazard === "heat") {
+      removePollutionTokens(card.targets, card.removeHeat || 0);
+    } else {
+      removePollutionTokens(card.targets, card.removePollution || 0);
+    }
     applyTileEffect(card.tileEffect);
     Object.entries(card.logicShift || {}).forEach(([k, v]) => {
       state.ideologies[k] = Math.max(0, state.ideologies[k] + v);
     });
-    addLog(`Solution adopted: ${card.headline}. AQI ${formatSigned(card.aqi)}.`);
+    addLog(`Solution adopted: ${card.headline}. ${getHazardLabel()} ${formatSigned(stressDelta)}.`);
   });
   state.solutionChoices = [];
   state.selectedSolutions = [];
@@ -655,7 +894,7 @@ function confirmSolutions() {
   els.confirmSolutionsBtn.style.display = "none";
   els.confirmSolutionsBtn.disabled = true;
   state.round += 1;
-  if (state.round > 8 || state.pollutionResolved > 5) {
+  if (state.round > 8 || state.pollutionResolved >= 5) {
     evaluateEnd();
     return;
   }
@@ -853,8 +1092,6 @@ function render() {
   els.aqiNumber.textContent = state.aqi;
   const aqiNumClass = state.aqi <= 3 ? "aqi-good" : state.aqi <= 5 ? "aqi-moderate" : state.aqi <= 8 ? "aqi-poor" : "aqi-bad";
   els.aqiNumber.className = `aqi-number ${aqiNumClass}`;
-  els.aqiLabel.textContent = getAQILabel(state.aqi);
-  els.aqiNote.textContent = getAQINote(state.aqi);
   els.devBar.style.width = `${devPct}%`;
   els.devValue.textContent = state.development;
 
@@ -874,7 +1111,7 @@ function render() {
   if (els.phaseName) els.phaseName.textContent = isFoundation ? "Foundation Phase" : "Pressure Phase";
   if (els.phaseSub) els.phaseSub.textContent = isFoundation
     ? "Build the city — three rounds to lay foundations"
-    : `Pollution shock ${state.pollutionResolved} of 5 — build, absorb, mitigate`;
+    : `${getHazardPhaseText()} (shock ${state.pollutionResolved} of 5)`;
   if (els.phaseRound) els.phaseRound.textContent = `Round ${state.round} of 8`;
   els.phaseBanner.classList.toggle("pressure-phase", !isFoundation);
 
@@ -887,12 +1124,14 @@ function render() {
     } else {
       const remaining = 5 - state.pollutionResolved;
       els.pollutionCountdown.className = `pollution-countdown ${remaining > 2 ? "warning" : "danger"}`;
-      els.cdText.textContent = `💨 Pollution shock ${state.pollutionResolved} of 5 drawn — ${remaining} remaining`;
+      els.cdText.textContent = `💨 ${state.hazard === "heat" ? "Heat" : "Pollution"} shock ${state.pollutionResolved} of 5 drawn — ${remaining} remaining`;
     }
   }
 
-  els.draftTitle.textContent = isFoundation ? "Choose two development tiles" : "Choose two development tiles before the next pollution shock";
-  els.draftHelper.textContent = isFoundation ? "Five offers appear each round. Pick two." : "After you confirm these picks, the city will draw a pollution card and then a solution row.";
+  els.draftTitle.textContent = isFoundation ? "Choose two development tiles" : getHazardDraftText();
+  els.draftHelper.textContent = isFoundation ? "Five offers appear each round. Pick two." : "After you confirm these picks, the city will draw a hazard card and then a solution row.";
+  els.aqiLabel.textContent = `${getHazardLabel()} — ${getAQILabel(state.aqi)}`;
+  els.aqiNote.textContent = getAQINote(state.aqi);
 
   renderRequirements();
   renderBoard();
@@ -927,8 +1166,10 @@ function evaluateEnd(reason = "") {
     outcome = "Public infrastructure failure";
     outcomeText = "Too much public infrastructure was knocked out or flipped during the pressure phase.";
   } else if (lossByAQI) {
-    outcome = "AQI collapse";
-    outcomeText = "Air quality crossed into a collapse band before the city could correct itself.";
+    outcome = state.hazard === "heat" ? "Heat stress collapse" : "AQI collapse";
+    outcomeText = state.hazard === "heat"
+      ? "Extreme heat crossed the city's coping threshold before the system could correct itself."
+      : "Air quality crossed into a collapse band before the city could correct itself.";
   } else if (lossByCards) {
     outcome = "Failed after five pollution shocks";
     outcomeText = "You reached the end of the pressure cycle, but the city remained in orange or worse.";
@@ -956,6 +1197,19 @@ function restartGame() {
   addLog("The hidden identity logic is active from the start. You are not roleplaying an identity; the city is offering you a biased menu.");
   render();
 }
+
+const airToggle = document.getElementById("airToggle");
+const heatToggle = document.getElementById("heatToggle");
+
+function setHazardMode(mode) {
+  state.hazard = mode;
+  airToggle.classList.toggle("active", mode === "air");
+  heatToggle.classList.toggle("active", mode === "heat");
+  render();
+}
+
+airToggle.addEventListener("click", () => setHazardMode("air"));
+heatToggle.addEventListener("click", () => setHazardMode("heat"));
 
 els.confirmOffersBtn.addEventListener("click", confirmOffers);
 els.confirmSolutionsBtn.addEventListener("click", confirmSolutions);
