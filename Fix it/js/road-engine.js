@@ -47,8 +47,8 @@ const TRAFFIC_DEMAND = {
 // ── Board geometry helpers ──
 
 // BOARD is 7 × 7 (indices 0–48). Row = Math.floor(idx / 7), Col = idx % 7.
-function cellRowCol(cellIndex) {
-  return { row: Math.floor(cellIndex / 7), col: cellIndex % 7 };
+function cellRowCol(idx) {
+  return { row: Math.floor(idx / 7), col: idx % 7 };
 }
 
 function cellIndex(row, col) {
@@ -57,8 +57,8 @@ function cellIndex(row, col) {
 }
 
 // Returns { top, right, bottom, left } cell indices (null if off-board).
-function orthogonalIndices(cellIndex) {
-  const { row, col } = cellRowCol(cellIndex);
+function orthogonalIndices(idx) {
+  const { row, col } = cellRowCol(idx);
   return {
     top:    cellIndex(row - 1, col),
     right:  cellIndex(row, col + 1),
@@ -146,9 +146,9 @@ function calculateTrafficPressure(cityTiles, boardSlots, mode) {
       const neighborName = grid[neighborIdx];
       if (!neighborName) continue;
       const neighborDemand = TRAFFIC_DEMAND[neighborName] ?? 1;
-      const state = edgeTrafficState(demand, neighborDemand);
-      if (state === "jammed") jamCount++;
-      else if (state === "busy") busyCount++;
+      const edgeState = edgeTrafficState(demand, neighborDemand);
+      if (edgeState === "jammed") jamCount++;
+      else if (edgeState === "busy") busyCount++;
       else openCount++;
     }
   });
@@ -167,9 +167,9 @@ function calculateTrafficPressure(cityTiles, boardSlots, mode) {
 
 // ── Edge label helpers for UI ──
 
-function trafficLabel(state) {
-  if (state === "jammed") return "Jammed";
-  if (state === "busy")   return "Busy";
+function trafficLabel(edgeState) {
+  if (edgeState === "jammed") return "Jammed";
+  if (edgeState === "busy")   return "Busy";
   return "Open";
 }
 
