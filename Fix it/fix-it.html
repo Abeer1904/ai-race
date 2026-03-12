@@ -119,13 +119,14 @@
     }
 
     .hud-chip .v {
-      font-size: 1.2rem;
-      font-weight: 800;
+      font-size: 1.35rem;
+      font-weight: 900;
+      letter-spacing: 0.01em;
     }
 
     .layout {
       display: grid;
-      grid-template-columns: minmax(980px, 1fr) 280px;
+      grid-template-columns: minmax(0, 1fr) 320px;
       gap: 18px;
       margin-top: 18px;
       align-items: start;
@@ -171,32 +172,52 @@
     }
 
     .phase-banner {
-      display: inline-flex;
+      display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 8px 14px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #fff5dd, #f2e2b3);
-      border: 1px solid rgba(23, 48, 58, 0.10);
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 18px;
+      border-radius: 14px;
+      background: linear-gradient(90deg, #22414b, #17303a);
+      color: #fff9ef;
+      border: none;
       font-weight: 800;
       margin-bottom: 14px;
+      font-size: 0.92rem;
+      letter-spacing: 0.02em;
+    }
+    .phase-banner .phase-name {
+      font-size: 1rem;
+      font-weight: 900;
+      letter-spacing: 0.04em;
+    }
+    .phase-banner .phase-sub {
+      font-size: 0.78rem;
+      color: rgba(255,249,239,0.6);
+      font-weight: 400;
+    }
+    .phase-banner.pressure-phase {
+      background: linear-gradient(90deg, #7a2e22, #b84a3a);
     }
 
     .board {
       position: relative;
-      min-height: 720px;
-      border-radius: 0;
-      background: #e9e0c8;
-      border: 2px solid rgba(23, 48, 58, 0.28);
+      min-height: 640px;
+      border-radius: 16px;
+      background-color: #ddd4b8;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 19px, rgba(23,48,58,0.06) 19px, rgba(23,48,58,0.06) 20px),
+        repeating-linear-gradient(90deg, transparent, transparent 19px, rgba(23,48,58,0.06) 19px, rgba(23,48,58,0.06) 20px);
+      border: 2px solid rgba(23, 48, 58, 0.22);
       overflow: hidden;
-      padding: 26px;
+      padding: 20px;
     }
 
     .board-grid {
       display: grid;
       grid-template-columns: repeat(7, minmax(0, 1fr));
-      grid-template-rows: repeat(7, 84px);
-      gap: 8px;
+      grid-template-rows: repeat(7, 80px);
+      gap: 6px;
       width: 100%;
       height: 100%;
       align-content: center;
@@ -205,25 +226,32 @@
 
     .board-cell {
       position: relative;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
-      border: 1px solid rgba(23, 48, 58, 0.18);
-      border-radius: 0;
+      background: rgba(255,255,255,0.08);
+      border: 1.5px dashed rgba(23, 48, 58, 0.20);
+      border-radius: 8px;
       overflow: visible;
+      transition: background 0.2s;
     }
 
     .board-cell.center {
-      background: rgba(23, 48, 58, 0.08);
+      background: rgba(23, 48, 58, 0.07);
+      border-style: solid;
+      border-color: rgba(23, 48, 58, 0.22);
+    }
+
+    .board-cell.occupied {
+      border-style: solid;
+      border-color: transparent;
+      background: transparent;
     }
 
     .hex-tile {
       position: absolute;
-      inset: 4px;
-      min-height: 0;
-      padding: 8px 8px 10px;
-      border-radius: 0;
-      border: 2px solid rgba(23,48,58,0.16);
-      box-shadow: none;
+      inset: 0;
+      padding: 7px 7px 8px;
+      border-radius: 8px;
+      border: 1.5px solid rgba(23,48,58,0.18);
+      box-shadow: 0 2px 8px rgba(23,48,58,0.12);
       color: #17303a;
       display: flex;
       flex-direction: column;
@@ -232,22 +260,25 @@
     }
 
     .hex-tile .tile-name {
-      font-size: 0.72rem;
+      font-size: 0.68rem;
       font-weight: 800;
-      line-height: 1.08;
+      line-height: 1.1;
       text-align: center;
-      white-space: nowrap;
       overflow: hidden;
-      text-overflow: ellipsis;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
     }
 
     .hex-tile .tile-meta {
       display: flex;
       justify-content: space-between;
-      gap: 4px;
-      font-size: 0.62rem;
-      color: rgba(23, 48, 58, 0.78);
-      margin-top: 6px;
+      gap: 2px;
+      font-size: 0.58rem;
+      font-weight: 700;
+      color: rgba(23, 48, 58, 0.72);
+      margin-top: 4px;
     }
 
     .tile-darkgreen { background: linear-gradient(180deg, #d7ead6, #c4ddc2); }
@@ -325,26 +356,113 @@
       align-items: center;
       justify-content: space-between;
       gap: 10px;
-      margin: 0;
-      font-size: 1rem;
+      margin: 0 0 10px;
+      font-size: 1.05rem;
+      font-weight: 800;
+      letter-spacing: 0.01em;
     }
 
-    .offer-grid,
+    .offer-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 7px;
+    }
+
     .event-grid {
       display: grid;
-      grid-template-columns: repeat(5, minmax(0, 1fr));
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: 12px;
     }
 
-    .event-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    /* Compact horizontal tile row */
+    .tile-row {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      border-radius: 12px;
+      border: 2px solid rgba(23,48,58,0.10);
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(23,48,58,0.07);
+      background: #fffaf2;
+      cursor: pointer;
+      transition: box-shadow 0.15s, transform 0.12s;
+    }
+    .tile-row:hover { box-shadow: 0 4px 16px rgba(23,48,58,0.14); transform: translateY(-1px); }
+    .tile-row.selected {
+      border-color: #17303a;
+      box-shadow: 0 0 0 3px rgba(23,48,58,0.18), 0 4px 16px rgba(23,48,58,0.12);
+    }
+    .tile-row-swatch {
+      width: 6px;
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+    .tile-row-body {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      flex-wrap: wrap;
+    }
+    .tile-row-name {
+      font-size: 0.92rem;
+      font-weight: 800;
+      color: var(--ink);
+      min-width: 120px;
+      flex-shrink: 0;
+    }
+    .tile-row-cat {
+      font-size: 0.70rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #6b7e85;
+      flex-shrink: 0;
+    }
+    .tile-row-chips {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+      flex: 1;
+    }
+    .tile-chip {
+      padding: 3px 8px;
+      border-radius: 999px;
+      font-size: 0.70rem;
+      font-weight: 700;
+      background: rgba(23,48,58,0.07);
+      color: #334d57;
+      white-space: nowrap;
+    }
+    .tile-chip.aqi-pos { background: rgba(67,122,79,0.15); color: #295b35; }
+    .tile-chip.aqi-neg { background: rgba(184,74,58,0.14); color: #8a2e22; }
+    .tile-chip.aqi-zero { background: rgba(23,48,58,0.07); color: #5b6c73; }
+    .tile-row-select {
+      flex-shrink: 0;
+      margin: 8px 10px 8px 0;
+      padding: 7px 14px;
+      font-size: 0.78rem;
+      border-radius: 8px;
+      box-shadow: none;
+    }
+    .tile-row-select.is-selected {
+      background: linear-gradient(180deg, #274753, #17303a);
+      color: #fff9ef;
+    }
+    .tile-row-select:not(.is-selected) {
+      background: rgba(23,48,58,0.07);
+      color: var(--ink);
+    }
 
+    /* Solution cards keep the existing card look */
     .game-card {
       position: relative;
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 14px 14px 16px;
-      border: 3px solid rgba(23, 48, 58, 0.08);
-      box-shadow: 0 10px 18px rgba(20,35,40,0.08);
-      min-height: 228px;
+      border: 2px solid rgba(23, 48, 58, 0.08);
+      box-shadow: 0 6px 14px rgba(20,35,40,0.07);
+      min-height: 200px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -352,39 +470,15 @@
       background: linear-gradient(180deg, #fffaf2, #f2e6cf);
     }
 
-    .game-card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 28%);
-    }
-
-    .game-card .ribbon {
-      position: absolute;
-      top: 12px;
-      right: -30px;
-      transform: rotate(35deg);
-      padding: 5px 34px;
-      font-size: 0.65rem;
-      font-weight: 900;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: #fffdf8;
-      background: linear-gradient(90deg, #274753, #17303a);
-      box-shadow: 0 6px 14px rgba(17, 36, 41, 0.18);
-    }
-
     .game-card h4 {
       margin: 0 0 8px;
-      font-size: 0.98rem;
-      line-height: 1.2;
-      max-width: 86%;
+      font-size: 0.95rem;
+      line-height: 1.25;
     }
 
     .game-card p {
       margin: 0;
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       line-height: 1.34;
       color: #42565e;
     }
@@ -445,16 +539,54 @@
     .card-select {
       width: 100%;
       margin-top: 12px;
+      background: transparent;
+      color: var(--ink);
+      border: 1.5px solid rgba(23,48,58,0.25);
+      box-shadow: none;
+      font-size: 0.84rem;
+      padding: 9px 12px;
+    }
+    .card-select:hover:not(:disabled) {
+      background: rgba(23,48,58,0.06);
+      transform: none;
+      box-shadow: none;
+    }
+    .card-select.is-selected {
+      background: linear-gradient(180deg, #274753, #17303a);
+      color: #fff9ef;
+      border-color: transparent;
     }
 
     .selected {
-      outline: 4px solid rgba(39, 71, 83, 0.22);
-      transform: translateY(-2px);
+      outline: 3px solid rgba(23,48,58,0.25);
+      transform: translateY(-1px);
     }
 
     .calm {
       border-color: rgba(67, 122, 79, 0.26);
       background: linear-gradient(180deg, #f8fcf6, #ebf3e6);
+    }
+
+    #confirmOffersBtn, #confirmSolutionsBtn {
+      background: linear-gradient(180deg, #22414b, #17303a);
+      color: #fff9ef;
+      padding: 12px 28px;
+      font-size: 0.95rem;
+      letter-spacing: 0.03em;
+    }
+    .ghost-btn {
+      background: transparent;
+      color: #8a9ea5;
+      border: 1.5px solid rgba(23,48,58,0.15);
+      box-shadow: none;
+      font-size: 0.84rem;
+      padding: 10px 18px;
+    }
+    .ghost-btn:hover:not(:disabled) {
+      background: rgba(23,48,58,0.05);
+      color: var(--ink);
+      transform: none;
+      box-shadow: none;
     }
 
     .side-stack {
@@ -497,28 +629,54 @@
     .bar.neutral > span { background: linear-gradient(90deg, #d7b056, #cc7a2f); }
     .bar.good > span { background: linear-gradient(90deg, #77ab71, #386948); }
 
-    .aqi-vertical-wrap {
+    .aqi-hero {
       display: flex;
-      justify-content: center;
-      padding-top: 4px;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 10px;
     }
-
-    .aqi-vertical {
-      width: 28px;
-      height: 280px;
-      border-radius: 999px;
-      background: rgba(23, 48, 58, 0.10);
-      overflow: hidden;
-      display: flex;
-      align-items: flex-end;
+    .aqi-number {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1;
+      color: var(--ink);
+      min-width: 52px;
     }
-
-    .aqi-vertical > span {
-      display: block;
+    .aqi-number.aqi-good { color: #295b35; }
+    .aqi-number.aqi-moderate { color: #a07a10; }
+    .aqi-number.aqi-poor { color: #cc7a2f; }
+    .aqi-number.aqi-bad { color: #b84a3a; }
+    .aqi-label-block { flex: 1; }
+    .aqi-label-block .aqi-cat {
+      font-size: 1.1rem;
+      font-weight: 900;
+      line-height: 1.1;
+    }
+    .aqi-label-block .aqi-note {
+      font-size: 0.78rem;
+      color: #5b6c73;
+      margin-top: 3px;
+      line-height: 1.35;
+    }
+    .aqi-bar-wrap {
       width: 100%;
-      height: 0%;
-      background: linear-gradient(180deg, #77ab71 0%, #d8ad36 35%, #cc7a2f 65%, #b84a3a 100%);
-      transition: height 0.35s ease;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(23,48,58,0.10);
+      position: relative;
+    }
+    .aqi-bar-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, #77ab71 0%, #d8ad36 42%, #cc7a2f 65%, #b84a3a 100%);
+      transition: width 0.4s ease;
+    }
+    .aqi-bar-marker {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: rgba(23,48,58,0.35);
     }
 
     .status-grid {
@@ -554,14 +712,83 @@
     }
 
     .req-row,
-    .log-item,
-    .event-card {
+    .log-item {
       background: #fff8ee;
       border-radius: 14px;
       padding: 10px 12px;
       border: 1px solid rgba(23,48,58,0.08);
       font-size: 0.84rem;
       line-height: 1.35;
+    }
+
+    .event-card {
+      border-radius: 14px;
+      padding: 12px 14px;
+      border: 1.5px solid rgba(23,48,58,0.08);
+      font-size: 0.84rem;
+      line-height: 1.4;
+      background: #fff8ee;
+    }
+    .event-card.waiting {
+      background: #f5f0e6;
+      border-color: rgba(23,48,58,0.08);
+      color: #8a9ea5;
+      font-style: italic;
+    }
+    .event-card.active {
+      background: linear-gradient(135deg, #fff0ec, #fde0d8);
+      border-color: rgba(184,74,58,0.35);
+      color: var(--ink);
+    }
+    .event-card.active .event-headline {
+      font-weight: 800;
+      font-size: 0.9rem;
+      margin-bottom: 6px;
+      color: #7a2518;
+    }
+    .event-card.active .event-meta {
+      font-size: 0.78rem;
+      color: #6b3028;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+
+    /* Pollution countdown strip */
+    .pollution-countdown {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 16px;
+      border-radius: 10px;
+      margin-top: 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .pollution-countdown.safe {
+      background: rgba(23,48,58,0.05);
+      color: #5b7278;
+      border: 1px solid rgba(23,48,58,0.08);
+    }
+    .pollution-countdown.warning {
+      background: rgba(204,122,47,0.10);
+      color: #8a5510;
+      border: 1px solid rgba(204,122,47,0.25);
+    }
+    .pollution-countdown.danger {
+      background: rgba(184,74,58,0.10);
+      color: #8a2e22;
+      border: 1px solid rgba(184,74,58,0.28);
+    }
+    .pollution-countdown .cd-icon { font-size: 1rem; }
+    .pollution-countdown .cd-text { flex: 1; }
+    .pollution-countdown .cd-badge {
+      padding: 3px 9px;
+      border-radius: 999px;
+      font-size: 0.70rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      background: currentColor;
+      filter: brightness(1.6) saturate(0.6);
     }
 
     .req-badge {
@@ -679,7 +906,17 @@
     <div class="layout">
       <section class="panel">
         <div class="board-wrap">
-          <div class="phase-banner" id="phaseBanner">Foundation phase — build the city</div>
+          <div class="phase-banner" id="phaseBanner">
+            <div>
+              <div class="phase-name" id="phaseName">Foundation Phase</div>
+              <div class="phase-sub" id="phaseSub">Build the city — three rounds to lay foundations</div>
+            </div>
+            <div id="phaseRound" style="font-size:0.82rem;color:rgba(255,249,239,0.65);font-weight:700;">Round 1 of 8</div>
+          </div>
+          <div class="pollution-countdown safe" id="pollutionCountdown">
+            <span class="cd-icon">🌫</span>
+            <span class="cd-text" id="cdText">Pollution cards begin in Round 4 — 3 rounds away</span>
+          </div>
           <div class="board" id="board"></div>
           <div class="selection-preview" id="selectionPreview"></div>
 
@@ -713,15 +950,23 @@
         </div>
         <div class="panel-body">
           <div class="side-stack">
-            <div class="meter-card">
-              <div class="meter-top" style="justify-content:center; flex-direction:column; text-align:center; gap:4px;">
-                <span>AQI</span>
-                <strong id="aqiLabel">Satisfactory</strong>
+            <div class="meter-card" style="padding:16px 14px;">
+              <div style="font-size:0.72rem;font-weight:800;letter-spacing:0.10em;text-transform:uppercase;color:#8a9ea5;margin-bottom:8px;">Air Quality Index</div>
+              <div class="aqi-hero">
+                <div class="aqi-number" id="aqiNumber">3</div>
+                <div class="aqi-label-block">
+                  <div class="aqi-cat" id="aqiLabel">Satisfactory</div>
+                  <div class="aqi-note" id="aqiNote">Keep the city within or under the yellow band.</div>
+                </div>
               </div>
-              <div class="aqi-vertical-wrap">
-                <div class="aqi-vertical"><span id="aqiBar"></span></div>
+              <div class="aqi-bar-wrap">
+                <div class="aqi-bar-fill" id="aqiBar" style="width:25%"></div>
+                <div class="aqi-bar-marker" style="left:41.6%" title="Moderate threshold"></div>
+                <div class="aqi-bar-marker" style="left:58.3%" title="Poor threshold"></div>
               </div>
-              <div class="small-note" id="aqiNote" style="margin-top:10px; text-align:center;">Keep the city within or under the yellow band.</div>
+              <div style="display:flex;justify-content:space-between;margin-top:5px;font-size:0.65rem;color:#8a9ea5;font-weight:700;">
+                <span>Good</span><span>Moderate</span><span>Poor</span><span>Severe</span>
+              </div>
             </div>
 
             <div class="meter-card">
@@ -979,6 +1224,12 @@
       board: document.getElementById("board"),
       selectionPreview: document.getElementById("selectionPreview"),
       phaseBanner: document.getElementById("phaseBanner"),
+      phaseName: document.getElementById("phaseName"),
+      phaseSub: document.getElementById("phaseSub"),
+      phaseRound: document.getElementById("phaseRound"),
+      pollutionCountdown: document.getElementById("pollutionCountdown"),
+      cdText: document.getElementById("cdText"),
+      aqiNumber: document.getElementById("aqiNumber"),
       draftTitle: document.getElementById("draftTitle"),
       draftHelper: document.getElementById("draftHelper"),
       offerGrid: document.getElementById("offerGrid"),
@@ -1160,23 +1411,33 @@
     function renderOfferChoices() {
       els.offerGrid.innerHTML = "";
       state.offerChoices.forEach(tile => {
+        const isSel = state.selectedOffers.includes(tile.id);
+        const aqiClass = tile.aqiShift < 0 ? "aqi-pos" : tile.aqiShift > 0 ? "aqi-neg" : "aqi-zero";
+        const aqiLabel = tile.aqiShift < 0 ? `AQI ${tile.aqiShift}` : tile.aqiShift > 0 ? `AQI +${tile.aqiShift}` : "AQI ±0";
+        const tagChips = tile.tags.slice(0, 3).map(t => `<span class="tile-chip">${t}</span>`).join("");
+        const extraChips = [
+          tile.jobs ? `<span class="tile-chip">Jobs ${formatSigned(tile.jobs)}</span>` : "",
+          tile.housing ? `<span class="tile-chip">Housing +${tile.housing}</span>` : ""
+        ].join("");
+
         const div = document.createElement("div");
-        div.className = `game-card tile-${cssColorClass(tile.color)}`;
-        if (state.selectedOffers.includes(tile.id)) div.classList.add("selected");
+        div.className = `tile-row${isSel ? " selected" : ""}`;
         div.innerHTML = `
-          <div class="ribbon">${tile.category}</div>
-          <div>
-            <h4>${tile.name}</h4>
-            <p>Tile colour drives AQI. This digital build also estimates how the tile affects development and city pressures.</p>
-            <div class="pill-row">
-              <span class="pill">AQI ${formatSigned(tile.aqiShift)}</span>
-              <span class="pill">DEV +${tile.development}</span>
-              ${tile.jobs ? `<span class="pill">Jobs ${formatSigned(tile.jobs)}</span>` : ``}
-              ${tile.housing ? `<span class="pill">Housing +${tile.housing}</span>` : ``}
+          <div class="tile-row-swatch" style="background:${colorValue(tile.color)};"></div>
+          <div class="tile-row-body">
+            <span class="tile-row-name">${tile.name}</span>
+            <span class="tile-row-cat">${tile.category}</span>
+            <div class="tile-row-chips">
+              <span class="tile-chip ${aqiClass}">${aqiLabel}</span>
+              <span class="tile-chip">Dev +${tile.development}</span>
+              ${extraChips}
+              ${tagChips}
             </div>
-            <div class="pill-row">${tile.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
           </div>
-          <button class="card-select">${state.selectedOffers.includes(tile.id) ? "Selected" : "Select tile"}</button>
+          <button class="tile-row-select ${isSel ? "is-selected" : ""}"
+                  style="border:1.5px solid ${isSel ? "transparent" : "rgba(23,48,58,0.2)"}">
+            ${isSel ? "✓ Selected" : "Select"}
+          </button>
         `;
         div.querySelector("button").addEventListener("click", () => toggleOffer(tile.id));
         els.offerGrid.appendChild(div);
@@ -1323,7 +1584,15 @@
       placePollutionTokens(card.targets, card.pollutionTokens || 0);
       applyTileEffect(card.tileEffect);
       addLog(`Pollution shock: ${card.headline} AQI ${formatSigned(card.aqi)}.`);
-      els.currentEventCard.innerHTML = `<strong>${card.headline}</strong><div style="margin-top:8px;">Targets: ${card.targets.length ? card.targets.join(", ") : "Diffuse urban sources"}<br/>Pollution tokens: ${card.pollutionTokens || 0}<br/>AQI shift: ${formatSigned(card.aqi)}</div>`;
+      els.currentEventCard.className = "event-card active";
+      els.currentEventCard.innerHTML = `
+        <div class="event-headline">${card.headline}</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin:6px 0;">
+          <span class="tile-chip aqi-neg">AQI ${formatSigned(card.aqi)}</span>
+          <span class="tile-chip">Tokens: ${card.pollutionTokens || 0}</span>
+        </div>
+        <div class="event-meta">Targets: ${card.targets.length ? card.targets.join(", ") : "Diffuse urban sources"}</div>
+      `;
       generateSolutions();
       render();
       if (state.aqi >= 12) evaluateEnd("AQI crossed the meter.");
@@ -1638,7 +1907,12 @@
 
       const aqiPct = (state.aqi / 12) * 100;
       const devPct = clamp((state.development / 200) * 100, 0, 100);
-      els.aqiBar.style.height = `${aqiPct}%`;
+      // Wide AQI bar (horizontal, width-based)
+      els.aqiBar.style.width = `${aqiPct}%`;
+      // AQI number
+      els.aqiNumber.textContent = state.aqi;
+      const aqiNumClass = state.aqi <= 3 ? "aqi-good" : state.aqi <= 5 ? "aqi-moderate" : state.aqi <= 8 ? "aqi-poor" : "aqi-bad";
+      els.aqiNumber.className = `aqi-number ${aqiNumClass}`;
       els.aqiLabel.textContent = getAQILabel(state.aqi);
       els.aqiNote.textContent = getAQINote(state.aqi);
       els.devBar.style.width = `${devPct}%`;
@@ -1654,9 +1928,31 @@
       els.pollutionCount.textContent = state.city.reduce((sum, tile) => sum + tile.pollutionTokens, 0);
       els.solutionCount.textContent = state.city.reduce((sum, tile) => sum + tile.solutionTokens, 0);
       els.flippedCount.textContent = state.city.filter(tile => tile.disabled && tile.publicInfra).length;
-      els.phaseBanner.textContent = state.round <= 3 ? "Foundation phase — build the city" : "Pressure phase — build, absorb pollution, then mitigate";
-      els.draftTitle.textContent = state.round <= 3 ? "Choose two development tiles" : "Choose two development tiles before the next pollution shock";
-      els.draftHelper.textContent = state.round <= 3 ? "Five offers appear each round. Pick two." : "After you confirm these picks, the city will draw a pollution card and then a solution row.";
+
+      // Phase banner
+      const isFoundation = state.round <= 3;
+      if (els.phaseName) els.phaseName.textContent = isFoundation ? "Foundation Phase" : "Pressure Phase";
+      if (els.phaseSub) els.phaseSub.textContent = isFoundation
+        ? "Build the city — three rounds to lay foundations"
+        : `Pollution shock ${state.pollutionResolved} of 5 — build, absorb, mitigate`;
+      if (els.phaseRound) els.phaseRound.textContent = `Round ${state.round} of 8`;
+      els.phaseBanner.classList.toggle("pressure-phase", !isFoundation);
+
+      // Pollution countdown strip
+      if (els.pollutionCountdown && els.cdText) {
+        if (isFoundation) {
+          const roundsLeft = 4 - state.round;
+          els.pollutionCountdown.className = `pollution-countdown ${roundsLeft > 1 ? "safe" : "warning"}`;
+          els.cdText.textContent = `🌫 Pollution cards begin Round 4 — ${roundsLeft} round${roundsLeft !== 1 ? "s" : ""} away`;
+        } else {
+          const remaining = 5 - state.pollutionResolved;
+          els.pollutionCountdown.className = `pollution-countdown ${remaining > 2 ? "warning" : "danger"}`;
+          els.cdText.textContent = `💨 Pollution shock ${state.pollutionResolved} of 5 drawn — ${remaining} remaining`;
+        }
+      }
+
+      els.draftTitle.textContent = isFoundation ? "Choose two development tiles" : "Choose two development tiles before the next pollution shock";
+      els.draftHelper.textContent = isFoundation ? "Five offers appear each round. Pick two." : "After you confirm these picks, the city will draw a pollution card and then a solution row.";
 
       renderRequirements();
       renderBoard();
