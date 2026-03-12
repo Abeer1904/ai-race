@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FIX IT — Digital Prototype</title>
+  <style>
+    :root {
+      --ink: #17303a;
+      --paper: #f4ecdb;
+      --paper-2: #efe4cd;
+      --shadow: 0 14px 32px rgba(17, 36, 41, 0.22);
+      --accent-green: #76a56e;
+      --accent-darkgreen: #295b35;
+      --accent-orange: #cc7a2f;
+      --accent-red: #b84a3a;
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(118, 165, 110, 0.14), transparent 30%),
+        radial-gradient(circle at top right, rgba(184, 74, 58, 0.10), transparent 28%),
+        linear-gradient(180deg, #fbf7ee 0%, #efe4cd 100%);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    .shell {
+      max-width: 1720px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .topbar {
+      background: linear-gradient(135deg, #22414b 0%, #17303a 100%);
+      color: #fff9ef;
+      border-radius: 24px;
+      padding: 18px 24px 20px;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+      border: 4px solid rgba(255,255,255,0.18);
+    }
+
+    .topbar::before,
+    .topbar::after {
+      content: "";
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      background: rgba(255,255,255,0.06);
+      border-radius: 24px;
+      transform: rotate(18deg);
+    }
+
+    .topbar::before { right: -40px; top: -26px; }
+    .topbar::after { right: 90px; bottom: -90px; }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .brand-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .title-pill {
+      background: #fff6e7;
+      color: var(--ink);
+      padding: 8px 16px;
+      border-radius: 999px;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      box-shadow: inset 0 0 0 2px rgba(23, 48, 58, 0.10);
+    }
+
+    .subtitle {
+      color: rgba(255, 248, 236, 0.82);
+      font-size: 0.94rem;
+      max-width: 860px;
+      line-height: 1.35;
+    }
+
+    .hud-strip {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .hud-chip {
+      min-width: 112px;
+      background: rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 14px;
+      padding: 10px 12px;
+      text-align: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .hud-chip .k {
+      display: block;
+      font-size: 0.74rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.72);
+      margin-bottom: 2px;
+    }
+
+    .hud-chip .v {
+      font-size: 1.2rem;
+      font-weight: 800;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(980px, 1fr) 280px;
+      gap: 18px;
+      margin-top: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 251, 244, 0.95);
+      border-radius: 24px;
+      box-shadow: var(--shadow);
+      border: 3px solid rgba(23, 48, 58, 0.08);
+      overflow: hidden;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      background: linear-gradient(180deg, #ebe0ca 0%, #dfcfb1 100%);
+      border-bottom: 1px solid rgba(23, 48, 58, 0.08);
+    }
+
+    .panel-head h2,
+    .panel-head h3 {
+      margin: 0;
+      font-size: 1rem;
+      letter-spacing: 0.03em;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .small-note {
+      color: #5b6c73;
+      font-size: 0.88rem;
+      line-height: 1.4;
+    }
+
+    .board-wrap {
+      padding: 18px;
+    }
+
+    .phase-banner {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #fff5dd, #f2e2b3);
+      border: 1px solid rgba(23, 48, 58, 0.10);
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .board {
+      position: relative;
+      min-height: 720px;
+      border-radius: 0;
+      background: #e9e0c8;
+      border: 2px solid rgba(23, 48, 58, 0.28);
+      overflow: hidden;
+      padding: 26px;
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      grid-template-rows: repeat(7, 84px);
+      gap: 8px;
+      width: 100%;
+      height: 100%;
+      align-content: center;
+      justify-content: center;
+    }
+
+    .board-cell {
+      position: relative;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.10), rgba(255,255,255,0.04));
+      border: 1px solid rgba(23, 48, 58, 0.18);
+      border-radius: 0;
+      overflow: visible;
+    }
+
+    .board-cell.center {
+      background: rgba(23, 48, 58, 0.08);
+    }
+
+    .hex-tile {
+      position: absolute;
+      inset: 4px;
+      min-height: 0;
+      padding: 8px 8px 10px;
+      border-radius: 0;
+      border: 2px solid rgba(23,48,58,0.16);
+      box-shadow: none;
+      color: #17303a;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: default;
+    }
+
+    .hex-tile .tile-name {
+      font-size: 0.72rem;
+      font-weight: 800;
+      line-height: 1.08;
+      text-align: center;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hex-tile .tile-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      font-size: 0.62rem;
+      color: rgba(23, 48, 58, 0.78);
+      margin-top: 6px;
+    }
+
+    .tile-darkgreen { background: linear-gradient(180deg, #d7ead6, #c4ddc2); }
+    .tile-lightgreen { background: linear-gradient(180deg, #e7efd8, #dbe7c8); }
+    .tile-yellow { background: linear-gradient(180deg, #f5edbc, #eada8c); }
+    .tile-orange { background: linear-gradient(180deg, #f3d8b5, #eabe87); }
+    .tile-red { background: linear-gradient(180deg, #f0c0b7, #df9180); }
+    .tile-darkred { background: linear-gradient(180deg, #d58a80, #be5e50); color: #fff8ee; }
+    .tile-lightred { background: linear-gradient(180deg, #ecc6bb, #e1a398); }
+    .tile-gpo {
+      background: linear-gradient(180deg, #fff9ef, #ecdbc0);
+      border-color: rgba(23,48,58,0.20);
+      text-align: center;
+      justify-content: center;
+      align-items: center;
+      font-weight: 900;
+    }
+
+    .tile-gpo .tile-name { font-size: 0.92rem; }
+
+    .token-row {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+      flex-wrap: wrap;
+    }
+
+    .token {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 1px solid rgba(23, 48, 58, 0.16);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.38);
+    }
+
+    .token.pollution { background: #b84a3a; }
+    .token.solution { background: #437a4f; }
+
+    .selection-preview {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      min-height: 38px;
+    }
+
+    .selection-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 16px;
+      background: #ffffff;
+      box-shadow: 0 8px 14px rgba(20,35,40,0.06);
+      font-weight: 800;
+      border: 2px solid rgba(23,48,58,0.12);
+      font-size: 0.88rem;
+    }
+
+    .selection-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .draft-section {
+      margin-top: 16px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .offer-grid,
+    .event-grid {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .event-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+    .game-card {
+      position: relative;
+      border-radius: 18px;
+      padding: 14px 14px 16px;
+      border: 3px solid rgba(23, 48, 58, 0.08);
+      box-shadow: 0 10px 18px rgba(20,35,40,0.08);
+      min-height: 228px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+      background: linear-gradient(180deg, #fffaf2, #f2e6cf);
+    }
+
+    .game-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(circle at top right, rgba(255,255,255,0.18), transparent 28%);
+    }
+
+    .game-card .ribbon {
+      position: absolute;
+      top: 12px;
+      right: -30px;
+      transform: rotate(35deg);
+      padding: 5px 34px;
+      font-size: 0.65rem;
+      font-weight: 900;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #fffdf8;
+      background: linear-gradient(90deg, #274753, #17303a);
+      box-shadow: 0 6px 14px rgba(17, 36, 41, 0.18);
+    }
+
+    .game-card h4 {
+      margin: 0 0 8px;
+      font-size: 0.98rem;
+      line-height: 1.2;
+      max-width: 86%;
+    }
+
+    .game-card p {
+      margin: 0;
+      font-size: 0.85rem;
+      line-height: 1.34;
+      color: #42565e;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 10px 0 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 9px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.58);
+      border: 1px solid rgba(23,48,58,0.08);
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: #42565e;
+    }
+
+    button {
+      appearance: none;
+      border: none;
+      background: linear-gradient(180deg, #274753, #17303a);
+      color: #fff8ed;
+      border-radius: 12px;
+      padding: 11px 14px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      box-shadow: 0 10px 18px rgba(20,35,40,0.15);
+      transition: transform 0.16s ease, opacity 0.16s ease, box-shadow 0.16s ease;
+    }
+
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 24px rgba(20,35,40,0.18);
+    }
+
+    button:disabled {
+      opacity: 0.46;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .ghost-btn {
+      background: linear-gradient(180deg, #fffaf2, #f1e6cf);
+      color: var(--ink);
+      border: 1px solid rgba(23,48,58,0.12);
+      box-shadow: none;
+    }
+
+    .card-select {
+      width: 100%;
+      margin-top: 12px;
+    }
+
+    .selected {
+      outline: 4px solid rgba(39, 71, 83, 0.22);
+      transform: translateY(-2px);
+    }
+
+    .calm {
+      border-color: rgba(67, 122, 79, 0.26);
+      background: linear-gradient(180deg, #f8fcf6, #ebf3e6);
+    }
+
+    .side-stack {
+      display: grid;
+      gap: 14px;
+    }
+
+    .meter-card {
+      padding: 12px;
+      background: linear-gradient(180deg, #fffaf2 0%, #f5ecd9 100%);
+      border-radius: 16px;
+      border: 1px solid rgba(23, 48, 58, 0.08);
+    }
+
+    .meter-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .bar {
+      height: 14px;
+      border-radius: 999px;
+      background: rgba(23, 48, 58, 0.10);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .bar > span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      transition: width 0.35s ease;
+      background: linear-gradient(90deg, var(--accent-green), var(--accent-darkgreen));
+    }
+
+    .bar.neutral > span { background: linear-gradient(90deg, #d7b056, #cc7a2f); }
+    .bar.good > span { background: linear-gradient(90deg, #77ab71, #386948); }
+
+    .aqi-vertical-wrap {
+      display: flex;
+      justify-content: center;
+      padding-top: 4px;
+    }
+
+    .aqi-vertical {
+      width: 28px;
+      height: 280px;
+      border-radius: 999px;
+      background: rgba(23, 48, 58, 0.10);
+      overflow: hidden;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .aqi-vertical > span {
+      display: block;
+      width: 100%;
+      height: 0%;
+      background: linear-gradient(180deg, #77ab71 0%, #d8ad36 35%, #cc7a2f 65%, #b84a3a 100%);
+      transition: height 0.35s ease;
+    }
+
+    .status-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tag-card {
+      background: #fff8ee;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(23, 48, 58, 0.08);
+    }
+
+    .tag-card .label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #66757b;
+      margin-bottom: 6px;
+    }
+
+    .tag-card .value {
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .requirements-grid,
+    .log-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .req-row,
+    .log-item,
+    .event-card {
+      background: #fff8ee;
+      border-radius: 14px;
+      padding: 10px 12px;
+      border: 1px solid rgba(23,48,58,0.08);
+      font-size: 0.84rem;
+      line-height: 1.35;
+    }
+
+    .req-badge {
+      padding: 5px 8px;
+      border-radius: 999px;
+      font-size: 0.70rem;
+      font-weight: 900;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .ok { background: rgba(67,122,79,0.12); color: #437a4f; }
+    .bad { background: rgba(184,74,58,0.12); color: #b84a3a; }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(19, 31, 36, 0.62);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 10;
+    }
+
+    .overlay.active { display: flex; }
+
+    .modal {
+      width: min(820px, 100%);
+      background: linear-gradient(180deg, #fffaf2, #f1e6cf);
+      border-radius: 28px;
+      border: 4px solid rgba(255,255,255,0.22);
+      box-shadow: 0 24px 56px rgba(17,36,41,0.30);
+      overflow: hidden;
+    }
+
+    .modal-head {
+      background: linear-gradient(135deg, #22414b, #17303a);
+      color: #fff9ef;
+      padding: 18px 22px;
+    }
+
+    .modal-body {
+      padding: 22px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .result-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .result-card {
+      background: #fff8ee;
+      border-radius: 16px;
+      padding: 14px;
+      border: 1px solid rgba(23,48,58,0.08);
+    }
+
+    .footnote {
+      font-size: 0.8rem;
+      color: #607279;
+      line-height: 1.42;
+    }
+
+    @media (max-width: 1220px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+      .offer-grid,
+      .event-grid {
+        grid-template-columns: 1fr;
+      }
+      .board { min-height: 420px; }
+    }
+
+    @media (max-width: 740px) {
+      .offer-grid,
+      .event-grid,
+      .result-grid,
+      .status-grid {
+        grid-template-columns: 1fr;
+      }
+      .brand-row {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .hud-strip { justify-content: flex-start; }
+      .hex-tile { width: 104px; min-height: 90px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="topbar">
+      <div class="brand-row">
+        <div>
+          <div class="brand-title">
+            <span class="title-pill">FIX IT</span>
+            <span style="font-size:1.15rem;font-weight:900;letter-spacing:0.03em;">Digital Prototype</span>
+          </div>
+          <p class="subtitle">A single-player city-building adaptation where development choices are biased by hidden political logics. Build a functioning South Asian city, keep AQI under control, and survive five pollution shocks without letting development collapse.</p>
+        </div>
+        <div class="hud-strip">
+          <div class="hud-chip"><span class="k">Round</span><span class="v" id="roundChip">1 / 8</span></div>
+          <div class="hud-chip"><span class="k">Phase</span><span class="v" id="phaseChip">Foundation</span></div>
+          <div class="hud-chip"><span class="k">Wind</span><span class="v" id="windChip">→ East</span></div>
+          <div class="hud-chip"><span class="k">Pollution Cards</span><span class="v" id="pollutionChip">0 / 5</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="layout">
+      <section class="panel">
+        <div class="board-wrap">
+          <div class="phase-banner" id="phaseBanner">Foundation phase — build the city</div>
+          <div class="board" id="board"></div>
+          <div class="selection-preview" id="selectionPreview"></div>
+
+          <div class="draft-section">
+            <div>
+              <h3 class="section-title">
+                <span id="draftTitle">Choose two development tiles</span>
+                <span class="small-note" id="draftHelper">Five offers appear each round. Pick two.</span>
+              </h3>
+              <div class="offer-grid" id="offerGrid"></div>
+            </div>
+
+            <div id="eventSection" style="display:none;">
+              <h3 class="section-title"><span>Response phase</span><span class="small-note">Pick two mitigations after the pollution shock.</span></h3>
+              <div class="event-grid" id="solutionGrid"></div>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <button id="confirmOffersBtn" disabled>Confirm tile choices</button>
+              <button id="confirmSolutionsBtn" disabled style="display:none;">Confirm solutions</button>
+              <button class="ghost-btn" id="restartBtn">Restart</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-head">
+          <h2>City Pressure Console</h2>
+          <span class="small-note">AQI is primary. Development and service pressures are the constraint layer.</span>
+        </div>
+        <div class="panel-body">
+          <div class="side-stack">
+            <div class="meter-card">
+              <div class="meter-top" style="justify-content:center; flex-direction:column; text-align:center; gap:4px;">
+                <span>AQI</span>
+                <strong id="aqiLabel">Satisfactory</strong>
+              </div>
+              <div class="aqi-vertical-wrap">
+                <div class="aqi-vertical"><span id="aqiBar"></span></div>
+              </div>
+              <div class="small-note" id="aqiNote" style="margin-top:10px; text-align:center;">Keep the city within or under the yellow band.</div>
+            </div>
+
+            <div class="meter-card">
+              <div class="meter-top"><span>Development</span><strong id="devValue">0</strong></div>
+              <div class="bar good"><span id="devBar"></span></div>
+            </div>
+            <div class="meter-card">
+              <div class="meter-top"><span>Unemployment Pressure</span><strong id="jobsValue">0</strong></div>
+              <div class="bar neutral"><span id="jobsBar"></span></div>
+            </div>
+            <div class="meter-card">
+              <div class="meter-top"><span>Migration Pressure</span><strong id="migrationValue">0</strong></div>
+              <div class="bar neutral"><span id="migrationBar"></span></div>
+            </div>
+            <div class="meter-card">
+              <div class="meter-top"><span>Water Stress</span><strong id="waterValue">0</strong></div>
+              <div class="bar neutral"><span id="waterBar"></span></div>
+            </div>
+            <div class="meter-card">
+              <div class="meter-top"><span>Electricity Stress</span><strong id="electricityValue">0</strong></div>
+              <div class="bar neutral"><span id="electricityBar"></span></div>
+            </div>
+
+            <div class="status-grid">
+              <div class="tag-card"><div class="label">City Tiles</div><div class="value" id="tileCount">0</div></div>
+              <div class="tag-card"><div class="label">Pollution Tokens</div><div class="value" id="pollutionCount">0</div></div>
+              <div class="tag-card"><div class="label">Solution Tokens</div><div class="value" id="solutionCount">0</div></div>
+              <div class="tag-card"><div class="label">Public Infrastructure Flipped</div><div class="value" id="flippedCount">0</div></div>
+            </div>
+
+            <div>
+              <div class="panel-head" style="border-radius:16px; padding:10px 12px; margin-bottom:10px;"><h3 style="font-size:0.92rem;">Current event</h3></div>
+              <div class="event-card" id="currentEventCard">No pollution card has been drawn yet.</div>
+            </div>
+
+            <div>
+              <div class="panel-head" style="border-radius:16px; padding:10px 12px; margin-bottom:10px;"><h3 style="font-size:0.92rem;">Minimum development requirements</h3></div>
+              <div class="requirements-grid" id="requirements"></div>
+            </div>
+
+            <div>
+              <div class="panel-head" style="border-radius:16px; padding:10px 12px; margin-bottom:10px;"><h3 style="font-size:0.92rem;">Game log</h3></div>
+              <div class="log-list" id="logList"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="overlay" id="endOverlay">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="brand-title">
+          <span class="title-pill">FINAL READOUT</span>
+          <span style="font-weight:900;font-size:1.15rem;">How the city read you</span>
+        </div>
+      </div>
+      <div class="modal-body">
+        <div id="resultHeadline" style="font-size:1.14rem;font-weight:900;"></div>
+        <div class="result-grid">
+          <div class="result-card">
+            <div class="label" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#66757b;margin-bottom:8px;">Dominant logic</div>
+            <div id="resultIdentity" style="font-size:1.28rem;font-weight:900;"></div>
+            <p id="resultIdentityText" class="small-note" style="margin-top:8px;"></p>
+          </div>
+          <div class="result-card">
+            <div class="label" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#66757b;margin-bottom:8px;">City outcome</div>
+            <div id="resultOutcome" style="font-size:1.1rem;font-weight:900;"></div>
+            <p id="resultOutcomeText" class="small-note" style="margin-top:8px;"></p>
+          </div>
+          <div class="result-card">
+            <div class="label" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#66757b;margin-bottom:8px;">Most chosen categories</div>
+            <div id="resultCategories" class="small-note"></div>
+          </div>
+          <div class="result-card">
+            <div class="label" style="font-size:0.72rem;text-transform:uppercase;letter-spacing:0.08em;color:#66757b;margin-bottom:8px;">Critical stress points</div>
+            <div id="resultPressures" class="small-note"></div>
+          </div>
+        </div>
+        <div class="footnote">This prototype keeps the original rule backbone — GPO-centred setup, AQI movement by tile colour, a three-round foundation phase, then a five-pollution-card pressure phase — while converting multiplayer identity conflict into hidden offer-generation logic. The development and service pressure layer is a digital adaptation added because the feedback notes called for development indicators, stronger challenge, visible health and energy implications, and more context for the city.</div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+          <button id="playAgainBtn">Play again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const AQI_MAP = {
+      "dark green": -2,
+      "light green": -1,
+      yellow: 1,
+      orange: 2,
+      red: 3,
+      "dark red": 4,
+      "light red": 3,
+      none: 0
+    };
+
+    const BOARD_SLOTS = [24, 17, 18, 25, 32, 31, 30, 10, 11, 19, 26, 33, 39, 38, 37, 12, 20, 27, 34, 40, 46, 41, 45, 23, 29, 35];
+
+    const TILES = [
+      { name: "Forest", category: "Green spaces", color: "dark green", count: 3, development: 2, jobs: 0, housing: 0, water: 1, power: 0, ideology: { activist: 3, citizen: 1 }, publicInfra: false, tags: ["green", "buffer", "public"] },
+      { name: "Public Park", category: "Green spaces", color: "light green", count: 3, development: 3, jobs: 0, housing: 0, water: 0, power: 0, ideology: { activist: 2, citizen: 1 }, publicInfra: true, tags: ["green", "public"] },
+      { name: "Airport", category: "Public Transportation", color: "dark red", count: 1, development: 12, jobs: 4, housing: 0, water: -1, power: -1, ideology: { builder: 3, industrialist: 1 }, publicInfra: true, tags: ["transport", "freight"] },
+      { name: "Railway", category: "Public Transportation", color: "orange", count: 1, development: 8, jobs: 2, housing: 0, water: 0, power: 0, ideology: { policymaker: 2, builder: 1 }, publicInfra: true, tags: ["transport", "mass"] },
+      { name: "Bus Stop", category: "Public Transportation", color: "yellow", count: 2, development: 5, jobs: 1, housing: 0, water: 0, power: 0, ideology: { policymaker: 2, citizen: 1 }, publicInfra: true, tags: ["transport", "public"] },
+      { name: "Metro", category: "Public Transportation", color: "yellow", count: 2, development: 10, jobs: 2, housing: 0, water: 0, power: -1, ideology: { policymaker: 3, activist: 1 }, publicInfra: true, tags: ["transport", "mass"] },
+      { name: "Highway", category: "Public Transportation", color: "orange", count: 2, development: 11, jobs: 3, housing: 0, water: -1, power: -1, ideology: { builder: 2, industrialist: 2 }, publicInfra: true, tags: ["road", "traffic", "freight"] },
+      { name: "Roadways", category: "Public Transportation", color: "yellow", count: 1, development: 6, jobs: 1, housing: 0, water: 0, power: 0, ideology: { builder: 1, citizen: 1 }, publicInfra: true, tags: ["road", "traffic"] },
+      { name: "Roadways", category: "Public Transportation", color: "orange", count: 1, development: 7, jobs: 1, housing: 0, water: -1, power: 0, ideology: { builder: 1, industrialist: 1 }, publicInfra: true, tags: ["road", "traffic"] },
+      { name: "Roadways", category: "Public Transportation", color: "red", count: 1, development: 8, jobs: 1, housing: 0, water: -1, power: 0, ideology: { builder: 2, industrialist: 1 }, publicInfra: true, tags: ["road", "traffic"] },
+      { name: "School", category: "Institutions", color: "yellow", count: 2, development: 7, jobs: 1, housing: 0, water: 0, power: 0, ideology: { activist: 1, citizen: 2, policymaker: 1 }, publicInfra: true, tags: ["institution", "public"] },
+      { name: "College", category: "Institutions", color: "yellow", count: 1, development: 8, jobs: 1, housing: 0, water: 0, power: 0, ideology: { citizen: 1, policymaker: 2 }, publicInfra: true, tags: ["institution"] },
+      { name: "Hospital", category: "Institutions", color: "yellow", count: 1, development: 9, jobs: 2, housing: 0, water: -1, power: -1, ideology: { citizen: 3, policymaker: 1 }, publicInfra: true, tags: ["health", "public"] },
+      { name: "Hospital", category: "Institutions", color: "orange", count: 1, development: 10, jobs: 2, housing: 0, water: -1, power: -1, ideology: { citizen: 3, policymaker: 1 }, publicInfra: true, tags: ["health", "public"] },
+      { name: "Govt Office", category: "Institutions", color: "orange", count: 1, development: 7, jobs: 1, housing: 0, water: 0, power: 0, ideology: { policymaker: 2 }, publicInfra: true, tags: ["institution"] },
+      { name: "Pvt Office", category: "Institutions", color: "orange", count: 2, development: 8, jobs: 2, housing: 0, water: 0, power: -1, ideology: { builder: 1, industrialist: 1 }, publicInfra: false, tags: ["office", "jobs"] },
+      { name: "Thermal Power Plant", category: "Energy source", color: "dark red", count: 2, development: 12, jobs: 2, housing: 0, water: -2, power: 5, ideology: { industrialist: 3, builder: 1 }, publicInfra: true, tags: ["power", "coal"] },
+      { name: "Methane Power Plant", category: "Energy source", color: "light green", count: 1, development: 8, jobs: 1, housing: 0, water: 0, power: 3, ideology: { policymaker: 1, activist: 1 }, publicInfra: true, tags: ["power", "transition"] },
+      { name: "Solar Power Plant", category: "Energy source", color: "light green", count: 1, development: 7, jobs: 1, housing: 0, water: 0, power: 3, ideology: { policymaker: 3, activist: 1 }, publicInfra: true, tags: ["power", "clean"] },
+      { name: "EV Charging Station", category: "Energy source", color: "light green", count: 1, development: 5, jobs: 0, housing: 0, water: 0, power: -1, ideology: { policymaker: 2, activist: 2 }, publicInfra: true, tags: ["mobility", "clean"] },
+      { name: "CNG Station", category: "Energy source", color: "yellow", count: 1, development: 5, jobs: 0, housing: 0, water: 0, power: -1, ideology: { policymaker: 2 }, publicInfra: true, tags: ["mobility", "transition"] },
+      { name: "Petrol Pump", category: "Energy source", color: "orange", count: 2, development: 6, jobs: 0, housing: 0, water: 0, power: 0, ideology: { builder: 1, industrialist: 1 }, publicInfra: false, tags: ["fuel", "vehicle"] },
+      { name: "DG Set", category: "Energy source", color: "red", count: 2, development: 4, jobs: 0, housing: 0, water: 0, power: 2, ideology: { builder: 1, industrialist: 1 }, publicInfra: false, tags: ["backup", "diesel"] },
+      { name: "High-rise Housing", category: "Residential", color: "orange", count: 3, development: 9, jobs: 0, housing: 4, water: -1, power: -1, ideology: { builder: 3 }, publicInfra: false, tags: ["housing", "density"] },
+      { name: "Slums", category: "Residential", color: "yellow", count: 2, development: 4, jobs: 0, housing: 2, water: -1, power: -1, ideology: { citizen: 2 }, publicInfra: false, tags: ["housing", "informal"] },
+      { name: "Affordable Housing", category: "Residential", color: "yellow", count: 2, development: 8, jobs: 0, housing: 4, water: -1, power: -1, ideology: { citizen: 2, builder: 1 }, publicInfra: false, tags: ["housing", "social"] },
+      { name: "Residential Landfill", category: "Waste disposal", color: "red", count: 2, development: 3, jobs: 0, housing: 0, water: -1, power: 0, ideology: { builder: 1, industrialist: 1 }, publicInfra: false, tags: ["waste"] },
+      { name: "City Landfill", category: "Waste disposal", color: "dark red", count: 2, development: 4, jobs: 1, housing: 0, water: -2, power: 0, ideology: { builder: 1, industrialist: 2 }, publicInfra: false, tags: ["waste"] },
+      { name: "Sewage Treatment Plant", category: "Waste disposal", color: "yellow", count: 1, development: 7, jobs: 1, housing: 0, water: 3, power: -1, ideology: { policymaker: 2, citizen: 1 }, publicInfra: true, tags: ["water", "waste", "public"] },
+      { name: "Mall", category: "Commercial", color: "orange", count: 1, development: 9, jobs: 2, housing: 0, water: -1, power: -1, ideology: { builder: 3 }, publicInfra: false, tags: ["commerce"] },
+      { name: "Weekly Market", category: "Commercial", color: "yellow", count: 1, development: 6, jobs: 2, housing: 0, water: 0, power: 0, ideology: { citizen: 1, builder: 1 }, publicInfra: false, tags: ["commerce", "local"] },
+      { name: "Mixed Market", category: "Commercial", color: "yellow", count: 2, development: 7, jobs: 2, housing: 0, water: 0, power: 0, ideology: { citizen: 1, builder: 1 }, publicInfra: false, tags: ["commerce", "local"] },
+      { name: "Hotel", category: "Commercial", color: "orange", count: 1, development: 8, jobs: 1, housing: 0, water: -1, power: -1, ideology: { builder: 2, industrialist: 1 }, publicInfra: false, tags: ["commerce"] },
+      { name: "SSI", category: "Industrial", color: "dark red", count: 3, development: 10, jobs: 4, housing: 0, water: -1, power: -1, ideology: { industrialist: 2, builder: 1 }, publicInfra: false, tags: ["industry", "jobs"] },
+      { name: "Large-scale Industry", category: "Industrial", color: "dark red", count: 4, development: 13, jobs: 5, housing: 0, water: -2, power: -2, ideology: { industrialist: 3, builder: 1 }, publicInfra: false, tags: ["industry", "jobs"] },
+      { name: "Construction", category: "Industrial", color: "light red", count: 2, development: 8, jobs: 3, housing: 0, water: -1, power: -1, ideology: { builder: 3 }, publicInfra: false, tags: ["construction"] },
+      { name: "Barren Land", category: "Misc.", color: "light green", count: 2, development: 1, jobs: 0, housing: 0, water: 0, power: 0, ideology: { builder: 1 }, publicInfra: false, tags: ["open"] },
+      { name: "Agricultural Land", category: "Misc.", color: "light green", count: 3, development: 3, jobs: 1, housing: 0, water: 1, power: 0, ideology: { citizen: 1, activist: 1 }, publicInfra: false, tags: ["agriculture"] },
+      { name: "Urban Village", category: "Misc.", color: "light green", count: 2, development: 4, jobs: 1, housing: 1, water: -1, power: -1, ideology: { citizen: 2 }, publicInfra: false, tags: ["settlement"] },
+      { name: "Rural Village", category: "Misc.", color: "light green", count: 1, development: 3, jobs: 1, housing: 1, water: 0, power: 0, ideology: { citizen: 2 }, publicInfra: false, tags: ["settlement"] }
+    ];
+
+    const TILE_LIBRARY = [];
+    TILES.forEach(tile => {
+      for (let i = 0; i < tile.count; i++) {
+        TILE_LIBRARY.push({
+          ...structuredClone(tile),
+          id: `${tile.name}-${i + 1}`,
+          aqiShift: AQI_MAP[tile.color] ?? 0,
+          pollutionTokens: 0,
+          solutionTokens: 0,
+          flippedFor: 0,
+          disabled: false
+        });
+      }
+    });
+
+    const POLLUTION_CARDS = [
+      { headline: "Commercial trucks from neighbouring cities keep delivering pollution", targets: ["Highway"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null },
+      { headline: "Air pollution from thermal power plants impact the health of both near and far", targets: ["Thermal Power Plant"], pollutionTokens: 4, aqi: 2, weaken: "citizen", tileEffect: { type: "add", tile: "Thermal Power Plant" } },
+      { headline: "More than 40% households use dirty fuel for cooking, which is one of the biggest hidden polluters", targets: ["Slums", "Rural Village", "Urban Village"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
+      { headline: "Plastic waste burning becomes a bigger enemy of air quality than stubble burning", targets: ["City Landfill", "Residential Landfill"], pollutionTokens: 4, aqi: 2, weaken: "citizen", tileEffect: null },
+      { headline: "The poor quality of roads leads to heavy traffic and leaves citizens choking", targets: ["Roadways"], requireColor: ["orange", "red"], pollutionTokens: 4, aqi: 1, weaken: "citizen", tileEffect: null },
+      { headline: "A large fire breaks out in the landfill and haze envelops the city", targets: ["City Landfill"], pollutionTokens: 4, aqi: 3, weaken: "politician", tileEffect: null },
+      { headline: "E-waste and plastic burning put nearby neighbourhoods at risk", targets: ["City Landfill", "Residential Landfill"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
+      { headline: "Open burning of leaves continues in parks, on roads, and near housing complexes", targets: ["High-rise Housing", "Public Park", "Roadways"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
+      { headline: "Illegal burning continues in the landfill to clear space for more garbage", targets: ["City Landfill"], pollutionTokens: 0, aqi: 2, weaken: "policymaker", tileEffect: null },
+      { headline: "Smokey chimneys leave people from nearby villages choking", targets: ["Thermal Power Plant"], pollutionTokens: 2, aqi: 3, weaken: "citizen", tileEffect: null },
+      { headline: "Coal dependence remains high and the transition to clean fuels stalls", targets: ["Thermal Power Plant"], pollutionTokens: 0, aqi: 2, weaken: null, tileEffect: { type: "flipGreenFuel" } },
+      { headline: "During a heatwave, the administration fires up an old coal plant to meet electricity demand", targets: ["Thermal Power Plant"], pollutionTokens: 0, aqi: 1, weaken: "policymaker", tileEffect: { type: "add", tile: "Thermal Power Plant" } },
+      { headline: "Hotels protect indoor air for a few while pollution spreads outside", targets: ["Hotel"], pollutionTokens: 2, aqi: 1, weaken: null, tileEffect: null },
+      { headline: "Vehicles account for more than half of total air pollution in the city", targets: ["Roadways"], requireColor: ["red"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null }
+    ];
+
+    const SOLUTION_CARDS = [
+      { headline: "Install weigh-in-motion bridges at city borders", solution: "Prevent overloading by commercial trucks", targets: ["Highway"], aqi: -2, addSolutions: 0, removePollution: 2, tileEffect: null, logicShift: { policymaker: 1 } },
+      { headline: "Cover 500MW demand with solar generation", solution: "Replace part of thermal dependence", targets: ["Thermal Power Plant"], aqi: -2, addSolutions: 2, removePollution: 0, tileEffect: { type: "flipTo", from: "Thermal Power Plant", to: "Solar Power Plant" }, logicShift: { policymaker: 2, activist: 1 } },
+      { headline: "Accelerate LPG penetration for cooking in households", solution: "Reduce dirty-fuel emissions", targets: ["Slums", "Urban Village", "Rural Village"], aqi: -1, addSolutions: 2, removePollution: 1, tileEffect: null, logicShift: { citizen: 1, policymaker: 1 } },
+      { headline: "Strict implementation of waste-management rules", solution: "Solid, hazardous, e-waste, biomedical, plastic and C&D", targets: ["City Landfill", "Residential Landfill"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: { type: "add", tile: "Sewage Treatment Plant" }, logicShift: { policymaker: 2 } },
+      { headline: "Undertake road widening and improvement", solution: "Decongest roads", targets: ["Roadways"], aqi: -2, addSolutions: 0, removePollution: 2, tileEffect: null, logicShift: { builder: 1, policymaker: 1 } },
+      { headline: "Move toward decentralised waste infrastructure", solution: "Reduce dependence on one giant landfill", targets: ["City Landfill"], aqi: -2, addSolutions: 2, removePollution: 1, tileEffect: null, logicShift: { policymaker: 2, activist: 1 } },
+      { headline: "Enforce extended producer responsibility", solution: "Track e-waste and plastic waste properly", targets: ["City Landfill", "Residential Landfill"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: null, logicShift: { policymaker: 1 } },
+      { headline: "Construct a methane power plant", solution: "Turn leaf and wet waste into transition energy", targets: ["Methane Power Plant", "Public Park", "Roadways", "High-rise Housing"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: { type: "add", tile: "Methane Power Plant" }, logicShift: { policymaker: 1, activist: 1 } },
+      { headline: "Train municipalities and SPCBs on advanced integrated waste management", solution: "Cut illegal burning as the only resort", targets: ["City Landfill", "Residential Landfill"], aqi: -2, addSolutions: 0, removePollution: 1, tileEffect: null, logicShift: { policymaker: 2 } },
+      { headline: "Introduce revised emission standards for thermal plants", solution: "Tighten controls on existing and upcoming plants", targets: ["Thermal Power Plant"], aqi: -1, addSolutions: 2, removePollution: 0, tileEffect: null, logicShift: { policymaker: 2 } },
+      { headline: "Control pricing of alternative fuels", solution: "Make EV and CNG transitions viable", targets: ["Petrol Pump"], aqi: -1, addSolutions: 0, removePollution: 0, tileEffect: { type: "flipToChoice", from: "Petrol Pump", choices: ["EV Charging Station", "CNG Station"] }, logicShift: { policymaker: 2, activist: 1 } },
+      { headline: "Phase out older coal plants and convert some to gas", solution: "Use methane as a transition bridge", targets: ["Thermal Power Plant"], aqi: -1, addSolutions: 0, removePollution: 0, tileEffect: { type: "flipTo", from: "Thermal Power Plant", to: "Methane Power Plant" }, logicShift: { policymaker: 2 } },
+      { headline: "Stop using coal and firewood in hotels and open eateries", solution: "Clean cooking in hospitality sector", targets: ["Hotel"], aqi: -1, addSolutions: 1, removePollution: 0, tileEffect: null, logicShift: { citizen: 1, policymaker: 1 } },
+      { headline: "Enhance public transport and shift travel behaviour", solution: "Add bus stop or metro service", targets: ["Roadways"], aqi: -2, addSolutions: 0, removePollution: 0, tileEffect: { type: "addChoice", choices: ["Bus Stop", "Metro"] }, logicShift: { policymaker: 2, activist: 1 } }
+    ];
+
+    const IDENTITY_DESCRIPTIONS = {
+      builder: "You repeatedly privileged visible growth: roads, construction, malls, airports, and dense building expansion.",
+      industrialist: "You leaned toward jobs, throughput, power, and industry — even when these choices increased structural pollution risk.",
+      activist: "You repeatedly favored green cover, cleaner mobility, and mitigation-oriented urban choices.",
+      policymaker: "You built through systems, regulation, public transport, energy transition, and civic infrastructure.",
+      citizen: "You prioritized livability, health, affordability, and the pressures of ordinary residents rather than elite growth markers."
+    };
+
+    const REQUIREMENTS = [
+      { id: "school", label: "At least one school", check: state => state.city.some(t => t.name === "School") },
+      { id: "housing", label: "At least one housing tile", check: state => state.city.some(t => ["High-rise Housing", "Affordable Housing", "Slums", "Urban Village", "Rural Village"].includes(t.name)) },
+      { id: "power", label: "At least one power source", check: state => state.city.some(t => ["Thermal Power Plant", "Solar Power Plant", "Methane Power Plant", "DG Set"].includes(t.name)) },
+      { id: "health", label: "At least one health tile", check: state => state.city.some(t => t.name === "Hospital") },
+      { id: "waste", label: "At least one waste-management tile", check: state => state.city.some(t => ["Residential Landfill", "City Landfill", "Sewage Treatment Plant"].includes(t.name)) }
+    ];
+
+    const state = {
+      round: 1,
+      phase: "foundation",
+      pollutionResolved: 0,
+      wind: ["North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West"][Math.floor(Math.random() * 8)],
+      aqi: 3,
+      development: 18,
+      pressures: { unemployment: 52, migration: 35, water: 42, electricity: 44 },
+      ideologies: { builder: 1, industrialist: 1, activist: 1, policymaker: 1, citizen: 1 },
+      city: [],
+      deck: [],
+      offerChoices: [],
+      selectedOffers: [],
+      currentPollutionCard: null,
+      solutionChoices: [],
+      selectedSolutions: [],
+      log: [],
+      ended: false,
+      history: { tiles: [], categories: {} }
+    };
+
+    const els = {
+      roundChip: document.getElementById("roundChip"),
+      phaseChip: document.getElementById("phaseChip"),
+      windChip: document.getElementById("windChip"),
+      pollutionChip: document.getElementById("pollutionChip"),
+      aqiBar: document.getElementById("aqiBar"),
+      aqiLabel: document.getElementById("aqiLabel"),
+      aqiNote: document.getElementById("aqiNote"),
+      devBar: document.getElementById("devBar"),
+      devValue: document.getElementById("devValue"),
+      jobsBar: document.getElementById("jobsBar"),
+      jobsValue: document.getElementById("jobsValue"),
+      migrationBar: document.getElementById("migrationBar"),
+      migrationValue: document.getElementById("migrationValue"),
+      waterBar: document.getElementById("waterBar"),
+      waterValue: document.getElementById("waterValue"),
+      electricityBar: document.getElementById("electricityBar"),
+      electricityValue: document.getElementById("electricityValue"),
+      tileCount: document.getElementById("tileCount"),
+      pollutionCount: document.getElementById("pollutionCount"),
+      solutionCount: document.getElementById("solutionCount"),
+      flippedCount: document.getElementById("flippedCount"),
+      requirements: document.getElementById("requirements"),
+      board: document.getElementById("board"),
+      selectionPreview: document.getElementById("selectionPreview"),
+      phaseBanner: document.getElementById("phaseBanner"),
+      draftTitle: document.getElementById("draftTitle"),
+      draftHelper: document.getElementById("draftHelper"),
+      offerGrid: document.getElementById("offerGrid"),
+      solutionGrid: document.getElementById("solutionGrid"),
+      eventSection: document.getElementById("eventSection"),
+      confirmOffersBtn: document.getElementById("confirmOffersBtn"),
+      confirmSolutionsBtn: document.getElementById("confirmSolutionsBtn"),
+      restartBtn: document.getElementById("restartBtn"),
+      currentEventCard: document.getElementById("currentEventCard"),
+      logList: document.getElementById("logList"),
+      endOverlay: document.getElementById("endOverlay"),
+      resultHeadline: document.getElementById("resultHeadline"),
+      resultIdentity: document.getElementById("resultIdentity"),
+      resultIdentityText: document.getElementById("resultIdentityText"),
+      resultOutcome: document.getElementById("resultOutcome"),
+      resultOutcomeText: document.getElementById("resultOutcomeText"),
+      resultCategories: document.getElementById("resultCategories"),
+      resultPressures: document.getElementById("resultPressures"),
+      playAgainBtn: document.getElementById("playAgainBtn")
+    };
+
+    function shuffle(arr) {
+      const a = arr.slice();
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function titleCase(key) {
+      return key.replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function addLog(text) {
+      state.log.unshift({ round: state.round, text });
+      state.log = state.log.slice(0, 20);
+    }
+
+    function cssColorClass(color) {
+      return String(color || "none").replace(/\s+/g, "").toLowerCase();
+    }
+
+    function colorValue(color) {
+      const map = {
+        "dark green": "#3f7a41",
+        "light green": "#7fb860",
+        yellow: "#d6c13b",
+        orange: "#d08b4a",
+        red: "#c96e61",
+        "dark red": "#a45d4f",
+        "light red": "#d6978b",
+        none: "#b5aa93"
+      };
+      return map[color] || "#b5aa93";
+    }
+
+    function formatSigned(num) {
+      return num > 0 ? `+${num}` : `${num}`;
+    }
+
+    function getAQILabel(value) {
+      if (value <= 1) return "Good";
+      if (value <= 3) return "Satisfactory";
+      if (value <= 5) return "Moderate";
+      if (value <= 7) return "Poor";
+      if (value <= 9) return "Very Poor";
+      return "Severe";
+    }
+
+    function getAQINote(value) {
+      if (value <= 3) return "You are still within or under the yellow band.";
+      if (value <= 5) return "The city is drifting into a dirtier equilibrium.";
+      if (value <= 7) return "The city is now clearly unhealthy.";
+      if (value <= 9) return "The city is in acute air-quality distress.";
+      return "The city has entered collapse territory.";
+    }
+
+    function resetState() {
+      state.round = 1;
+      state.phase = "foundation";
+      state.pollutionResolved = 0;
+      state.wind = ["North", "North-East", "East", "South-East", "South", "South-West", "West", "North-West"][Math.floor(Math.random() * 8)];
+      state.aqi = 3;
+      state.development = 18;
+      state.pressures = { unemployment: 52, migration: 35, water: 42, electricity: 44 };
+      state.ideologies = { builder: 1, industrialist: 1, activist: 1, policymaker: 1, citizen: 1 };
+      state.city = [];
+      state.deck = shuffle(TILE_LIBRARY.map(tile => structuredClone(tile)));
+      state.offerChoices = [];
+      state.selectedOffers = [];
+      state.currentPollutionCard = null;
+      state.solutionChoices = [];
+      state.selectedSolutions = [];
+      state.log = [];
+      state.ended = false;
+      state.history = { tiles: [], categories: {} };
+    }
+
+    function getOfferWeights() {
+      const p = state.pressures;
+      return {
+        builder: state.ideologies.builder + (p.migration > 55 ? 2 : 0) + (p.unemployment > 60 ? 1 : 0),
+        industrialist: state.ideologies.industrialist + (p.unemployment > 55 ? 2 : 0) + (p.electricity > 60 ? 1 : 0),
+        activist: state.ideologies.activist + (state.aqi > 5 ? 2 : 0) + (p.water > 55 ? 1 : 0),
+        policymaker: state.ideologies.policymaker + (p.water > 55 ? 2 : 0) + (p.electricity > 55 ? 2 : 0),
+        citizen: state.ideologies.citizen + (p.migration > 50 ? 1 : 0) + (p.unemployment > 50 ? 1 : 0)
+      };
+    }
+
+    function scoreTile(tile) {
+      const weights = getOfferWeights();
+      let score = 1;
+      Object.entries(tile.ideology || {}).forEach(([k, v]) => {
+        score += (weights[k] || 1) * v;
+      });
+      if (state.pressures.electricity > 55 && ["Thermal Power Plant", "Solar Power Plant", "Methane Power Plant", "DG Set"].includes(tile.name)) score += 4;
+      if (state.pressures.water > 55 && ["Forest", "Public Park", "Sewage Treatment Plant", "Agricultural Land"].includes(tile.name)) score += 3;
+      if (state.pressures.unemployment > 55 && ["SSI", "Large-scale Industry", "Mall", "Pvt Office", "Construction", "Weekly Market", "Mixed Market"].includes(tile.name)) score += 4;
+      if (state.pressures.migration > 50 && ["Affordable Housing", "High-rise Housing", "Urban Village", "Rural Village", "Slums"].includes(tile.name)) score += 4;
+      if (state.aqi > 5 && ["Forest", "Public Park", "Solar Power Plant", "Metro", "Bus Stop", "Sewage Treatment Plant", "EV Charging Station", "CNG Station"].includes(tile.name)) score += 4;
+      return score;
+    }
+
+    function drawWeightedTile() {
+      const available = state.deck.filter(Boolean);
+      if (!available.length) return null;
+      const scored = available.map(tile => ({ tile, score: scoreTile(tile) }));
+      const total = scored.reduce((sum, item) => sum + item.score, 0);
+      let roll = Math.random() * total;
+      let chosen = scored[0].tile;
+      for (const item of scored) {
+        roll -= item.score;
+        if (roll <= 0) {
+          chosen = item.tile;
+          break;
+        }
+      }
+      const deckIndex = state.deck.findIndex(t => t.id === chosen.id);
+      if (deckIndex >= 0) state.deck.splice(deckIndex, 1);
+      return structuredClone(chosen);
+    }
+
+    function drawInitialCity() {
+      const gpo = { id: "GPO", name: "GPO", category: "Reference", color: "none", aqiShift: 0, development: 0, jobs: 0, housing: 0, water: 0, power: 0, pollutionTokens: 0, solutionTokens: 0, flippedFor: 0, publicInfra: true, tags: [], disabled: false, ideology: {} };
+      state.city.push(gpo);
+      for (let i = 0; i < 6; i++) {
+        const tile = drawWeightedTile();
+        if (tile) placeTile(tile);
+      }
+      addLog("The city begins with the GPO at the centre and six surrounding tiles.");
+    }
+
+    function generateOfferChoices() {
+      state.selectedOffers = [];
+      const offers = [];
+      const used = new Set();
+      let guard = 0;
+      while (offers.length < 5 && state.deck.length && guard < 100) {
+        guard += 1;
+        const tile = drawWeightedTile();
+        if (!tile) break;
+        const key = `${tile.name}-${tile.color}`;
+        if (used.has(key)) {
+          state.deck.push(tile);
+          continue;
+        }
+        used.add(key);
+        offers.push(tile);
+      }
+      state.offerChoices = offers;
+      renderOfferChoices();
+    }
+
+    function renderOfferChoices() {
+      els.offerGrid.innerHTML = "";
+      state.offerChoices.forEach(tile => {
+        const div = document.createElement("div");
+        div.className = `game-card tile-${cssColorClass(tile.color)}`;
+        if (state.selectedOffers.includes(tile.id)) div.classList.add("selected");
+        div.innerHTML = `
+          <div class="ribbon">${tile.category}</div>
+          <div>
+            <h4>${tile.name}</h4>
+            <p>Tile colour drives AQI. This digital build also estimates how the tile affects development and city pressures.</p>
+            <div class="pill-row">
+              <span class="pill">AQI ${formatSigned(tile.aqiShift)}</span>
+              <span class="pill">DEV +${tile.development}</span>
+              ${tile.jobs ? `<span class="pill">Jobs ${formatSigned(tile.jobs)}</span>` : ``}
+              ${tile.housing ? `<span class="pill">Housing +${tile.housing}</span>` : ``}
+            </div>
+            <div class="pill-row">${tile.tags.map(tag => `<span class="pill">${tag}</span>`).join("")}</div>
+          </div>
+          <button class="card-select">${state.selectedOffers.includes(tile.id) ? "Selected" : "Select tile"}</button>
+        `;
+        div.querySelector("button").addEventListener("click", () => toggleOffer(tile.id));
+        els.offerGrid.appendChild(div);
+      });
+      renderSelectionPreview();
+      els.confirmOffersBtn.disabled = state.selectedOffers.length !== 2;
+    }
+
+    function renderSelectionPreview() {
+      els.selectionPreview.innerHTML = "";
+      const selected = state.offerChoices.filter(t => state.selectedOffers.includes(t.id));
+      selected.forEach(tile => {
+        const chip = document.createElement("div");
+        chip.className = "selection-chip";
+        chip.innerHTML = `<span class="selection-dot" style="background:${colorValue(tile.color)}"></span><span>${tile.name}</span><span style="font-size:0.8rem;color:#5b6c73;">AQI ${formatSigned(tile.aqiShift)}</span>`;
+        els.selectionPreview.appendChild(chip);
+      });
+    }
+
+    function toggleOffer(id) {
+      const idx = state.selectedOffers.indexOf(id);
+      if (idx >= 0) state.selectedOffers.splice(idx, 1);
+      else if (state.selectedOffers.length < 2) state.selectedOffers.push(id);
+      renderOfferChoices();
+    }
+
+    function confirmOffers() {
+      if (state.selectedOffers.length !== 2) return;
+      const selected = state.offerChoices.filter(t => state.selectedOffers.includes(t.id));
+      const unselected = state.offerChoices.filter(t => !state.selectedOffers.includes(t.id));
+      unselected.forEach(t => state.deck.push(t));
+      state.deck = shuffle(state.deck);
+      selected.forEach(tile => {
+        placeTile(tile);
+        addLog(`Built ${tile.name}. AQI ${formatSigned(tile.aqiShift)}. Development +${tile.development}.`);
+      });
+      state.offerChoices = [];
+      state.selectedOffers = [];
+      els.offerGrid.innerHTML = "";
+      els.selectionPreview.innerHTML = "";
+      els.confirmOffersBtn.disabled = true;
+      endBuildStep();
+    }
+
+    function placeTile(tile) {
+      tile.slot = state.city.length < BOARD_SLOTS.length ? state.city.length : BOARD_SLOTS.length - 1;
+      state.city.push(tile);
+      state.aqi = clamp(state.aqi + tile.aqiShift, 0, 12);
+      state.development += tile.development;
+      state.pressures.unemployment = clamp(state.pressures.unemployment - tile.jobs * 4, 0, 100);
+      state.pressures.migration = clamp(state.pressures.migration - tile.housing * 3 + Math.max(0, tile.development - 8), 0, 100);
+      state.pressures.water = clamp(state.pressures.water - tile.water * 6 + (tile.housing > 0 ? 4 : 0), 0, 100);
+      state.pressures.electricity = clamp(state.pressures.electricity - tile.power * 7 + (tile.housing > 0 ? 4 : 0), 0, 100);
+      Object.entries(tile.ideology || {}).forEach(([k, v]) => {
+        state.ideologies[k] += v;
+      });
+      state.history.tiles.push(tile.name);
+      state.history.categories[tile.category] = (state.history.categories[tile.category] || 0) + 1;
+      if (["Thermal Power Plant", "DG Set", "Large-scale Industry", "SSI", "Highway", "Roadways", "Construction"].includes(tile.name)) {
+        state.pressures.water = clamp(state.pressures.water + 2, 0, 100);
+      }
+      if (["Slums", "Urban Village", "Rural Village", "Affordable Housing", "High-rise Housing"].includes(tile.name)) {
+        state.pressures.migration = clamp(state.pressures.migration - 2, 0, 100);
+      }
+    }
+
+    function endBuildStep() {
+      advanceBasePressures();
+      if (state.round <= 3) {
+        state.round += 1;
+        state.phase = state.round <= 3 ? "foundation" : "pressure";
+        addLog(`Round ${state.round - 1} ends. Service pressures continue to accumulate.`);
+        if (state.round > 8) {
+          evaluateEnd();
+          return;
+        }
+        if (state.phase === "pressure") {
+          addLog("The city has entered the pressure phase. Pollution cards now begin to resolve.");
+        }
+        generateOfferChoices();
+        render();
+        return;
+      }
+      resolvePollutionPhase();
+    }
+
+    function advanceBasePressures() {
+      updateFlipTimers();
+      const populationLoad = Math.max(0, state.city.length - 5);
+      state.pressures.unemployment = clamp(state.pressures.unemployment + 4 - Math.floor(state.development / 40), 0, 100);
+      state.pressures.migration = clamp(state.pressures.migration + 3 + Math.floor(populationLoad / 2), 0, 100);
+      state.pressures.water = clamp(state.pressures.water + 4 + Math.floor(populationLoad / 2), 0, 100);
+      state.pressures.electricity = clamp(state.pressures.electricity + 4 + Math.floor(populationLoad / 2), 0, 100);
+      if (state.pressures.electricity > 70) {
+        state.aqi = clamp(state.aqi + 1, 0, 12);
+        addLog("Electricity stress triggered dirtier backup systems. AQI worsened by +1.");
+      }
+      if (state.pressures.water > 72) {
+        state.aqi = clamp(state.aqi + 1, 0, 12);
+        addLog("Water stress and dust pressure worsened local air quality. AQI worsened by +1.");
+      }
+      if (state.pressures.unemployment > 74) state.ideologies.industrialist += 1;
+      if (state.pressures.migration > 74) {
+        state.ideologies.builder += 1;
+        state.ideologies.citizen += 1;
+      }
+    }
+
+    function cardIsPlayable(card) {
+      const present = state.city.filter(t => t.name !== "GPO");
+      return present.some(tile => card.targets.includes(tile.name) && (!card.requireColor || card.requireColor.includes(tile.color)));
+    }
+
+    function drawPollutionCard() {
+      const playable = POLLUTION_CARDS.filter(cardIsPlayable);
+      if (!playable.length) {
+        return { headline: "Diffuse urban pollution spreads without a single obvious trigger", targets: [], pollutionTokens: 0, aqi: 1, weaken: null, tileEffect: null };
+      }
+      const weighted = playable.map(card => {
+        let score = 1;
+        if (card.targets.includes("Thermal Power Plant") && state.pressures.electricity > 55) score += 3;
+        if (card.targets.includes("Roadways") && state.city.some(t => t.name === "Highway")) score += 2;
+        if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.pressures.migration > 45) score += 2;
+        if (card.targets.includes("Slums") && state.pressures.migration > 55) score += 2;
+        return { card, score };
+      });
+      const total = weighted.reduce((sum, item) => sum + item.score, 0);
+      let roll = Math.random() * total;
+      for (const item of weighted) {
+        roll -= item.score;
+        if (roll <= 0) return item.card;
+      }
+      return weighted[0].card;
+    }
+
+    function resolvePollutionPhase() {
+      const card = drawPollutionCard();
+      state.currentPollutionCard = card;
+      state.pollutionResolved += 1;
+      state.aqi = clamp(state.aqi + card.aqi, 0, 12);
+      if (card.weaken && state.ideologies[card.weaken] !== undefined) {
+        state.ideologies[card.weaken] = Math.max(0, state.ideologies[card.weaken] - 1);
+      }
+      placePollutionTokens(card.targets, card.pollutionTokens || 0);
+      applyTileEffect(card.tileEffect);
+      addLog(`Pollution shock: ${card.headline} AQI ${formatSigned(card.aqi)}.`);
+      els.currentEventCard.innerHTML = `<strong>${card.headline}</strong><div style="margin-top:8px;">Targets: ${card.targets.length ? card.targets.join(", ") : "Diffuse urban sources"}<br/>Pollution tokens: ${card.pollutionTokens || 0}<br/>AQI shift: ${formatSigned(card.aqi)}</div>`;
+      generateSolutions();
+      render();
+      if (state.aqi >= 12) evaluateEnd("AQI crossed the meter.");
+    }
+
+    function placePollutionTokens(targetNames, amount) {
+      if (!amount || !targetNames.length) {
+        state.aqi = calculateStructuralAQI();
+        return;
+      }
+      const candidates = state.city.filter(t => targetNames.includes(t.name) && t.name !== "GPO");
+      if (!candidates.length) {
+        state.aqi = calculateStructuralAQI();
+        return;
+      }
+      for (let i = 0; i < amount; i++) {
+        const target = candidates[i % candidates.length];
+        if (target.solutionTokens > 0) {
+          target.solutionTokens = Math.max(0, target.solutionTokens - 1);
+          addLog(`A solution token on ${target.name} absorbed a pollution strike.`);
+        } else {
+          target.pollutionTokens += 1;
+        }
+      }
+      state.aqi = calculateStructuralAQI();
+    }
+
+    function calculateStructuralAQI() {
+      const tileAQI = state.city.reduce((sum, tile) => sum + (tile.disabled ? 0 : tile.aqiShift), 0);
+      const pollution = Math.floor(state.city.reduce((sum, tile) => sum + tile.pollutionTokens, 0) / 2);
+      const solutions = state.city.reduce((sum, tile) => sum + tile.solutionTokens, 0);
+      return clamp(3 + tileAQI + pollution - solutions, 0, 12);
+    }
+
+    function generateSolutions() {
+      state.selectedSolutions = [];
+      const playable = SOLUTION_CARDS.filter(card => card.targets.some(target => state.city.some(tile => tile.name === target)));
+      const pool = playable.length ? playable : [];
+      const scored = pool.map(card => {
+        let score = 1;
+        if (card.targets.includes("Thermal Power Plant") && state.city.some(t => t.name === "Thermal Power Plant")) score += 3;
+        if ((card.targets.includes("Roadways") || card.targets.includes("Highway")) && state.aqi > 5) score += 2;
+        if ((card.targets.includes("City Landfill") || card.targets.includes("Residential Landfill")) && state.city.some(t => ["City Landfill", "Residential Landfill"].includes(t.name))) score += 2;
+        if ((card.targets.includes("Slums") || card.targets.includes("Urban Village") || card.targets.includes("Rural Village")) && state.pressures.migration > 45) score += 2;
+        if (card.targets.includes("Petrol Pump") && state.city.some(t => t.name === "Petrol Pump")) score += 2;
+        return { card, score };
+      });
+      const selected = [];
+      while (selected.length < Math.min(3, scored.length) && scored.length) {
+        const total = scored.reduce((sum, item) => sum + item.score, 0);
+        let roll = Math.random() * total;
+        let chosenIndex = 0;
+        for (let i = 0; i < scored.length; i++) {
+          roll -= scored[i].score;
+          if (roll <= 0) {
+            chosenIndex = i;
+            break;
+          }
+        }
+        selected.push(scored.splice(chosenIndex, 1)[0].card);
+      }
+      state.solutionChoices = selected;
+      renderSolutions();
+      els.eventSection.style.display = state.solutionChoices.length ? "block" : "none";
+      els.confirmSolutionsBtn.style.display = state.solutionChoices.length ? "inline-block" : "none";
+      els.confirmSolutionsBtn.disabled = true;
+    }
+
+    function renderSolutions() {
+      els.solutionGrid.innerHTML = "";
+      state.solutionChoices.forEach((card, index) => {
+        const div = document.createElement("div");
+        div.className = `game-card calm ${state.selectedSolutions.includes(index) ? "selected" : ""}`;
+        div.innerHTML = `
+          <div class="ribbon">Solution</div>
+          <div>
+            <h4>${card.headline}</h4>
+            <p>${card.solution}</p>
+            <div class="pill-row">
+              <span class="pill">Targets: ${card.targets.join(", ")}</span>
+              <span class="pill">AQI ${formatSigned(card.aqi)}</span>
+              ${card.addSolutions ? `<span class="pill">+${card.addSolutions} solution token${card.addSolutions > 1 ? "s" : ""}</span>` : ``}
+              ${card.removePollution ? `<span class="pill">Remove ${card.removePollution} pollution token${card.removePollution > 1 ? "s" : ""}</span>` : ``}
+            </div>
+          </div>
+          <button class="card-select">${state.selectedSolutions.includes(index) ? "Selected" : "Select solution"}</button>
+        `;
+        div.querySelector("button").addEventListener("click", () => toggleSolution(index));
+        els.solutionGrid.appendChild(div);
+      });
+      els.confirmSolutionsBtn.disabled = state.selectedSolutions.length !== Math.min(2, state.solutionChoices.length);
+    }
+
+    function toggleSolution(index) {
+      const idx = state.selectedSolutions.indexOf(index);
+      if (idx >= 0) state.selectedSolutions.splice(idx, 1);
+      else if (state.selectedSolutions.length < Math.min(2, state.solutionChoices.length)) state.selectedSolutions.push(index);
+      renderSolutions();
+    }
+
+    function confirmSolutions() {
+      const needed = Math.min(2, state.solutionChoices.length);
+      if (state.selectedSolutions.length !== needed) return;
+      state.selectedSolutions.map(i => state.solutionChoices[i]).forEach(card => {
+        state.aqi = clamp(state.aqi + card.aqi, 0, 12);
+        addSolutionTokens(card.targets, card.addSolutions || 0);
+        removePollutionTokens(card.targets, card.removePollution || 0);
+        applyTileEffect(card.tileEffect);
+        Object.entries(card.logicShift || {}).forEach(([k, v]) => {
+          state.ideologies[k] = Math.max(0, state.ideologies[k] + v);
+        });
+        addLog(`Solution adopted: ${card.headline}. AQI ${formatSigned(card.aqi)}.`);
+      });
+      state.solutionChoices = [];
+      state.selectedSolutions = [];
+      els.solutionGrid.innerHTML = "";
+      els.eventSection.style.display = "none";
+      els.confirmSolutionsBtn.style.display = "none";
+      els.confirmSolutionsBtn.disabled = true;
+      state.round += 1;
+      if (state.round > 8 || state.pollutionResolved > 5) {
+        evaluateEnd();
+        return;
+      }
+      generateOfferChoices();
+      render();
+    }
+
+    function addSolutionTokens(targetNames, amount) {
+      if (!amount) {
+        state.aqi = calculateStructuralAQI();
+        return;
+      }
+      const targets = state.city.filter(t => targetNames.includes(t.name));
+      if (!targets.length) {
+        state.aqi = calculateStructuralAQI();
+        return;
+      }
+      for (let i = 0; i < amount; i++) {
+        const target = targets[i % targets.length];
+        if (target.pollutionTokens > 0) target.pollutionTokens -= 1;
+        else target.solutionTokens += 1;
+      }
+      state.aqi = calculateStructuralAQI();
+    }
+
+    function removePollutionTokens(targetNames, amount) {
+      if (!amount) {
+        state.aqi = calculateStructuralAQI();
+        return;
+      }
+      let left = amount;
+      const targets = state.city.filter(t => targetNames.includes(t.name)).sort((a, b) => b.pollutionTokens - a.pollutionTokens);
+      for (const target of targets) {
+        while (target.pollutionTokens > 0 && left > 0) {
+          target.pollutionTokens -= 1;
+          left -= 1;
+        }
+        if (!left) break;
+      }
+      state.aqi = calculateStructuralAQI();
+    }
+
+    function applyTileEffect(effect) {
+      if (!effect) {
+        state.aqi = calculateStructuralAQI();
+        return;
+      }
+      if (effect.type === "add") {
+        const tile = pullTileByName(effect.tile);
+        if (tile) {
+          placeTile(tile);
+          addLog(`${effect.tile} was added to the city by a card effect.`);
+        }
+      }
+      if (effect.type === "flipGreenFuel") {
+        const target = state.city.find(t => ["Solar Power Plant", "Methane Power Plant", "EV Charging Station", "CNG Station"].includes(t.name) && !t.disabled);
+        if (target) {
+          target.disabled = true;
+          target.flippedFor = 2;
+          addLog(`${target.name} was flipped face down for two rounds.`);
+        }
+      }
+      if (effect.type === "flipTo") {
+        const target = state.city.find(t => t.name === effect.from && !t.disabled);
+        if (target) updateTileFromTemplate(target, effect.to, `${effect.from} was transformed into ${effect.to}.`);
+      }
+      if (effect.type === "addChoice") {
+        const chosen = effect.choices.find(name => !state.city.some(tile => tile.name === name)) || effect.choices[0];
+        const tile = pullTileByName(chosen);
+        if (tile) {
+          placeTile(tile);
+          addLog(`${chosen} was added to the city.`);
+        }
+      }
+      if (effect.type === "flipToChoice") {
+        const target = state.city.find(t => t.name === effect.from && !t.disabled);
+        if (target) {
+          const chosen = effect.choices.find(name => !state.city.some(tile => tile.name === name)) || effect.choices[0];
+          updateTileFromTemplate(target, chosen, `${effect.from} was replaced by ${chosen}.`);
+        }
+      }
+      state.aqi = calculateStructuralAQI();
+    }
+
+    function updateTileFromTemplate(target, name, logText) {
+      const replacement = cloneTemplate(name);
+      if (!replacement) return;
+      target.name = replacement.name;
+      target.category = replacement.category;
+      target.color = replacement.color;
+      target.aqiShift = replacement.aqiShift;
+      target.development = replacement.development;
+      target.jobs = replacement.jobs;
+      target.housing = replacement.housing;
+      target.water = replacement.water;
+      target.power = replacement.power;
+      target.tags = replacement.tags;
+      target.ideology = replacement.ideology;
+      target.publicInfra = replacement.publicInfra;
+      addLog(logText);
+    }
+
+    function pullTileByName(name) {
+      const index = state.deck.findIndex(tile => tile.name === name);
+      if (index >= 0) return structuredClone(state.deck.splice(index, 1)[0]);
+      return cloneTemplate(name);
+    }
+
+    function cloneTemplate(name) {
+      const template = TILES.find(tile => tile.name === name);
+      if (!template) return null;
+      return {
+        ...structuredClone(template),
+        id: `${name}-generated-${Math.random().toString(36).slice(2, 8)}`,
+        aqiShift: AQI_MAP[template.color] ?? 0,
+        pollutionTokens: 0,
+        solutionTokens: 0,
+        flippedFor: 0,
+        disabled: false
+      };
+    }
+
+    function updateFlipTimers() {
+      state.city.forEach(tile => {
+        if (tile.flippedFor > 0) {
+          tile.flippedFor -= 1;
+          if (tile.flippedFor === 0) tile.disabled = false;
+        }
+      });
+    }
+
+    function renderBoard() {
+      els.board.innerHTML = "";
+      const grid = document.createElement("div");
+      grid.className = "board-grid";
+      const cells = [];
+      for (let i = 0; i < 49; i++) {
+        const cell = document.createElement("div");
+        cell.className = `board-cell ${i === 24 ? "center" : ""}`;
+        grid.appendChild(cell);
+        cells.push(cell);
+      }
+      state.city.forEach((tile, index) => {
+        const slotIndex = BOARD_SLOTS[index] ?? BOARD_SLOTS[BOARD_SLOTS.length - 1];
+        const host = cells[slotIndex] || cells[24];
+        const div = document.createElement("div");
+        const classes = ["hex-tile"];
+        if (tile.name === "GPO") classes.push("tile-gpo");
+        else classes.push(`tile-${cssColorClass(tile.color)}`);
+        if (tile.disabled) div.style.opacity = "0.45";
+        div.className = classes.join(" ");
+        const pollutionDots = Array.from({ length: tile.pollutionTokens }, () => `<span class="token pollution"></span>`).join("");
+        const solutionDots = Array.from({ length: tile.solutionTokens }, () => `<span class="token solution"></span>`).join("");
+        div.innerHTML = `
+          <div class="tile-name">${tile.name}</div>
+          <div class="tile-meta"><span>${tile.name === "GPO" ? "Reference" : `AQI ${formatSigned(tile.disabled ? 0 : tile.aqiShift)}`}</span><span>${tile.name === "GPO" ? "Centre" : `DEV +${tile.development}`}</span></div>
+          ${tile.name === "GPO" ? "" : `<div class="token-row">${pollutionDots}${solutionDots}</div>`}
+        `;
+        host.appendChild(div);
+      });
+      els.board.appendChild(grid);
+    }
+
+    function renderRequirements() {
+      els.requirements.innerHTML = "";
+      REQUIREMENTS.forEach(req => {
+        const ok = req.check(state);
+        const row = document.createElement("div");
+        row.className = "req-row";
+        row.innerHTML = `<span>${req.label}</span><span class="req-badge ${ok ? "ok" : "bad"}">${ok ? "Met" : "Missing"}</span>`;
+        els.requirements.appendChild(row);
+      });
+    }
+
+    function renderLog() {
+      els.logList.innerHTML = "";
+      state.log.forEach(item => {
+        const div = document.createElement("div");
+        div.className = "log-item";
+        div.innerHTML = `<strong>R${item.round}</strong> — ${item.text}`;
+        els.logList.appendChild(div);
+      });
+    }
+
+    function render() {
+      state.aqi = calculateStructuralAQI();
+      els.roundChip.textContent = `${Math.min(state.round, 8)} / 8`;
+      els.phaseChip.textContent = state.round <= 3 ? "Foundation" : "Pressure";
+      els.windChip.textContent = `${windIcon(state.wind)} ${state.wind}`;
+      els.pollutionChip.textContent = `${state.pollutionResolved} / 5`;
+
+      const aqiPct = (state.aqi / 12) * 100;
+      const devPct = clamp((state.development / 200) * 100, 0, 100);
+      els.aqiBar.style.height = `${aqiPct}%`;
+      els.aqiLabel.textContent = getAQILabel(state.aqi);
+      els.aqiNote.textContent = getAQINote(state.aqi);
+      els.devBar.style.width = `${devPct}%`;
+      els.devValue.textContent = state.development;
+
+      Object.entries(state.pressures).forEach(([k, v]) => {
+        const id = k === "unemployment" ? "jobs" : k;
+        els[`${id}Bar`].style.width = `${clamp(v, 0, 100)}%`;
+        els[`${id}Value`].textContent = Math.round(v);
+      });
+
+      els.tileCount.textContent = Math.max(0, state.city.length - 1);
+      els.pollutionCount.textContent = state.city.reduce((sum, tile) => sum + tile.pollutionTokens, 0);
+      els.solutionCount.textContent = state.city.reduce((sum, tile) => sum + tile.solutionTokens, 0);
+      els.flippedCount.textContent = state.city.filter(tile => tile.disabled && tile.publicInfra).length;
+      els.phaseBanner.textContent = state.round <= 3 ? "Foundation phase — build the city" : "Pressure phase — build, absorb pollution, then mitigate";
+      els.draftTitle.textContent = state.round <= 3 ? "Choose two development tiles" : "Choose two development tiles before the next pollution shock";
+      els.draftHelper.textContent = state.round <= 3 ? "Five offers appear each round. Pick two." : "After you confirm these picks, the city will draw a pollution card and then a solution row.";
+
+      renderRequirements();
+      renderBoard();
+      renderLog();
+    }
+
+    function windIcon(wind) {
+      const map = { North: "↑", "North-East": "↗", East: "→", "South-East": "↘", South: "↓", "South-West": "↙", West: "←", "North-West": "↖" };
+      return map[wind] || "→";
+    }
+
+    function evaluateEnd(reason = "") {
+      if (state.ended) return;
+      state.ended = true;
+      const requirementsMet = REQUIREMENTS.filter(req => req.check(state)).length;
+      const dominant = Object.entries(state.ideologies).sort((a, b) => b[1] - a[1])[0][0];
+      const sortedCategories = Object.entries(state.history.categories).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      const worstPressures = Object.entries(state.pressures).sort((a, b) => b[1] - a[1]).slice(0, 3);
+      let outcome = "Fragile success";
+      let outcomeText = "You got through the main pollution cycle without full collapse, but the city remains structurally tense.";
+
+      const builderIndustrialTakeover = (state.ideologies.builder + state.ideologies.industrialist) > (state.ideologies.activist + state.ideologies.policymaker + state.ideologies.citizen + 5);
+      const flippedPublicInfra = state.city.filter(tile => tile.disabled && tile.publicInfra).length >= 3;
+      const lossByAQI = state.aqi >= 10 || reason.includes("crossed");
+      const lossByCards = state.pollutionResolved >= 5 && state.aqi > 3;
+      const lossByDevelopment = state.development < 38 || requirementsMet < 3;
+
+      if (builderIndustrialTakeover) {
+        outcome = "Builder–industrialist takeover";
+        outcomeText = "The city became structurally locked into growth-heavy and pollution-heavy choices. The hidden development bloc effectively took over.";
+      } else if (flippedPublicInfra) {
+        outcome = "Public infrastructure failure";
+        outcomeText = "Too much public infrastructure was knocked out or flipped during the pressure phase.";
+      } else if (lossByAQI) {
+        outcome = "AQI collapse";
+        outcomeText = "Air quality crossed into a collapse band before the city could correct itself.";
+      } else if (lossByCards) {
+        outcome = "Failed after five pollution shocks";
+        outcomeText = "You reached the end of the pressure cycle, but the city remained in orange or worse.";
+      } else if (lossByDevelopment) {
+        outcome = "Underbuilt city";
+        outcomeText = "The city stayed cleaner, but it did not build enough capacity or essential systems to count as a functioning urban settlement.";
+      }
+
+      els.resultHeadline.textContent = outcome.includes("success") ? "You held the city together." : "The city exposed the logic of your choices.";
+      els.resultIdentity.textContent = titleCase(dominant);
+      els.resultIdentityText.textContent = IDENTITY_DESCRIPTIONS[dominant];
+      els.resultOutcome.textContent = outcome;
+      els.resultOutcomeText.textContent = `${outcomeText}${reason ? ` ${reason}` : ""}`;
+      els.resultCategories.innerHTML = sortedCategories.map(([name, count]) => `<div><strong>${name}</strong> — ${count}</div>`).join("") || "No dominant categories registered.";
+      els.resultPressures.innerHTML = worstPressures.map(([name, value]) => `<div><strong>${titleCase(name)}</strong> — ${Math.round(value)}</div>`).join("");
+      els.endOverlay.classList.add("active");
+    }
+
+    function restartGame() {
+      els.endOverlay.classList.remove("active");
+      resetState();
+      drawInitialCity();
+      generateOfferChoices();
+      els.currentEventCard.textContent = "No pollution card has been drawn yet.";
+      addLog("The hidden identity logic is active from the start. You are not roleplaying an identity; the city is offering you a biased menu.");
+      render();
+    }
+
+    els.confirmOffersBtn.addEventListener("click", confirmOffers);
+    els.confirmSolutionsBtn.addEventListener("click", confirmSolutions);
+    els.restartBtn.addEventListener("click", restartGame);
+    els.playAgainBtn.addEventListener("click", restartGame);
+
+    resetState();
+    drawInitialCity();
+    generateOfferChoices();
+    addLog("The hidden identity logic is active from the start. You are not roleplaying an identity; the city is offering you a biased menu.");
+    render();
+  </script>
+</body>
+</html>
