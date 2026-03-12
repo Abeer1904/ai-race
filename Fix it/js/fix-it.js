@@ -56,6 +56,8 @@ const TILES = [
 
 const TILE_LIBRARY = [];
 TILES.forEach(tile => {
+  // Roadways and Highway are now road-edge properties of the grid, not placeable tiles
+  if (["Roadways", "Highway"].includes(tile.name)) return;
   for (let i = 0; i < tile.count; i++) {
     TILE_LIBRARY.push({
       ...structuredClone(tile),
@@ -294,6 +296,7 @@ const state = {
   log: [],
   ended: false,
   activeSolutions: [],
+  trafficPressure: { jamCount: 0, busyCount: 0, openCount: 0, raw: 0, rounded: 0, aqiContribution: 0, heatContribution: 0 },
   history: { tiles: [], categories: {} }
 };
 
@@ -430,6 +433,7 @@ function resetState() {
   state.log = [];
   state.ended = false;
   state.activeSolutions = [];
+  state.trafficPressure = { jamCount: 0, busyCount: 0, openCount: 0, raw: 0, rounded: 0, aqiContribution: 0, heatContribution: 0 };
   state.history = { tiles: [], categories: {} };
 }
 
@@ -547,6 +551,11 @@ function renderOfferChoices() {
 
     // Dependency evaluation for this offer
     const depEval = evaluateOfferTile(tile, state.city, [], state.activeSolutions, state.hazard);
+
+    // Placement constraint evaluation
+    const placementResult = validatePlacement(tile.name, state.city.length, state.city, BOARD_SLOTS);
+    const placeNote = placementNote(placementResult, tile.name);
+
     const depChips = depEval.notes.slice(0, 2).map(n => {
       const cls = n.startsWith("Risk:") ? "tile-chip dep-risk" :
                   n.startsWith("Penalty:") ? "tile-chip dep-penalty" :
@@ -554,8 +563,14 @@ function renderOfferChoices() {
       return `<span class="${cls}">${n}</span>`;
     }).join("");
 
+    const placeChip = placeNote.text
+      ? `<span class="tile-chip place-${placeNote.level}">${placeNote.text}</span>`
+      : "";
+
+    const allNotes = [depChips, placeChip].filter(Boolean).join("");
+
     const div = document.createElement("div");
-    div.className = `tile-row${isSel ? " selected" : ""}`;
+    div.className = `tile-row${isSel ? " selected" : ""}${!placementResult.allowed ? " placement-blocked" : ""}`;
     div.innerHTML = `
       <div class="tile-row-swatch" style="background:${colorValue(tile.color)};"></div>
       <div class="tile-row-body">
@@ -567,11 +582,12 @@ function renderOfferChoices() {
           ${extraChips}
           ${tagChips}
         </div>
-        ${depChips ? `<div class="tile-row-dep">${depChips}</div>` : ""}
+        ${allNotes ? `<div class="tile-row-dep">${allNotes}</div>` : ""}
       </div>
-      <button class="tile-row-select ${isSel ? "is-selected" : ""}"
-              style="border:1.5px solid ${isSel ? "transparent" : "rgba(23,48,58,0.2)"}">
-        ${isSel ? "✓ Selected" : "Select"}
+      <button class="tile-row-select ${isSel ? "is-selected" : ""}${!placementResult.allowed ? " is-blocked" : ""}"
+              style="border:1.5px solid ${isSel ? "transparent" : "rgba(23,48,58,0.2)"}"
+              ${!placementResult.allowed ? "title='Placement blocked by adjacency rule'" : ""}>
+        ${!placementResult.allowed ? "Blocked" : isSel ? "✓ Selected" : "Select"}
       </button>
     `;
     div.querySelector("button").addEventListener("click", () => toggleOffer(tile.id));
@@ -593,6 +609,10 @@ function renderSelectionPreview() {
 }
 
 function toggleOffer(id) {
+  const tile = state.offerChoices.find(t => t.id === id);
+  if (!tile) return;
+  const check = validatePlacement(tile.name, state.city.length, state.city, BOARD_SLOTS);
+  if (!check.allowed) return; // hard block: cannot select
   const idx = state.selectedOffers.indexOf(id);
   if (idx >= 0) state.selectedOffers.splice(idx, 1);
   else if (state.selectedOffers.length < 2) state.selectedOffers.push(id);
@@ -631,13 +651,15 @@ function placeTile(tile) {
   });
   state.history.tiles.push(tile.name);
   state.history.categories[tile.category] = (state.history.categories[tile.category] || 0) + 1;
-  if (["Thermal Power Plant", "DG Set", "Large-scale Industry", "SSI", "Highway", "Roadways", "Construction"].includes(tile.name)) {
+  if (["Thermal Power Plant", "DG Set", "Large-scale Industry", "SSI", "Construction"].includes(tile.name)) {
     state.pressures.water = clamp(state.pressures.water + 2, 0, 100);
   }
   if (["Slums", "Urban Village", "Rural Village", "Affordable Housing", "High-rise Housing"].includes(tile.name)) {
     state.pressures.migration = clamp(state.pressures.migration - 2, 0, 100);
   }
   recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
+  recomputeAllEdges(state.city, BOARD_SLOTS);
+  state.trafficPressure = calculateTrafficPressure(state.city, BOARD_SLOTS, state.hazard);
 }
 
 function endBuildStep() {
@@ -1070,11 +1092,15 @@ function renderBoard() {
     const depNote = (tile.depEval && tile.depEval.notes && tile.depEval.notes.length)
       ? `<div class="dep-note">${tile.depEval.notes[0]}</div>`
       : "";
+    const trafficNote = tileTrafficNote(tile)
+      ? `<div class="dep-note traffic-note">${tileTrafficNote(tile)}</div>`
+      : "";
     div.innerHTML = `
       <div class="tile-name">${tile.name}</div>
       <div class="tile-meta"><span>${tile.name === "GPO" ? "Reference" : `AQI ${formatSigned(tile.disabled ? 0 : tile.aqiShift)}`}</span><span>${tile.name === "GPO" ? "Centre" : `DEV +${tile.development}`}</span></div>
       ${tile.name === "GPO" ? "" : `<div class="token-row">${pollutionDots}${solutionDots}</div>`}
       ${tile.name === "GPO" ? "" : depNote}
+      ${tile.name === "GPO" ? "" : trafficNote}
     `;
     host.appendChild(div);
   });
@@ -1105,6 +1131,8 @@ function renderLog() {
 function render() {
   state.aqi = calculateStructuralAQI();
   recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
+  recomputeAllEdges(state.city, BOARD_SLOTS);
+  state.trafficPressure = calculateTrafficPressure(state.city, BOARD_SLOTS, state.hazard);
   els.roundChip.textContent = `${Math.min(state.round, 8)} / 8`;
   els.phaseChip.textContent = state.round <= 3 ? "Foundation" : "Pressure";
   els.windChip.textContent = `${windIcon(state.wind)} ${state.wind}`;

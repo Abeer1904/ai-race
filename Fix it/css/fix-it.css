@@ -432,6 +432,29 @@ body {
 .tile-chip.aqi-neg { background: rgba(184,74,58,0.14); color: #8a2e22; }
 .tile-chip.aqi-zero { background: rgba(23,48,58,0.07); color: #5b6c73; }
 
+/* Placement constraint chips */
+.tile-chip.place-blocked  { background: rgba(160,40,30,0.18); color: #7a1a10; font-weight: 800; }
+.tile-chip.place-warning  { background: rgba(180,100,0,0.14); color: #6b4400; }
+.tile-chip.place-bonus    { background: rgba(67,122,79,0.15); color: #295b35; }
+.tile-chip.place-mixed    { background: rgba(23,48,58,0.08);  color: #334d57; }
+.tile-chip.place-neutral  { display: none; }
+
+/* Blocked tile row in offer grid */
+.tile-row.placement-blocked {
+  opacity: 0.6;
+  pointer-events: none;
+}
+.tile-row-select.is-blocked {
+  background: rgba(160,40,30,0.12);
+  color: #8a2e22;
+  cursor: not-allowed;
+}
+
+/* Traffic note on board tiles */
+.dep-note.traffic-note {
+  color: #8a5500;
+}
+
 /* Dependency note chips */
 .tile-chip.dep-support { background: rgba(67,122,79,0.12); color: #2a5c38; }
 .tile-chip.dep-risk    { background: rgba(184,74,58,0.13); color: #7a2b20; }
