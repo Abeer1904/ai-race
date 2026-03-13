@@ -524,14 +524,24 @@ function drawWeightedTile() {
   return structuredClone(chosen);
 }
 
+function drawInitialSafeTile(st) {
+  const candidates = st.deck.filter(tile => isAllowedStartingTile(tile.name));
+  if (!candidates.length) return null;
+  const idx = Math.floor(Math.random() * candidates.length);
+  const chosen = candidates[idx];
+  const deckIndex = st.deck.findIndex(t => t.id === chosen.id);
+  if (deckIndex >= 0) st.deck.splice(deckIndex, 1);
+  return structuredClone(chosen);
+}
+
 function drawInitialCity() {
   const gpo = { id: "GPO", name: "GPO", category: "Reference", color: "none", aqiShift: 0, development: 0, jobs: 0, housing: 0, water: 0, power: 0, pollutionTokens: 0, solutionTokens: 0, flippedFor: 0, publicInfra: true, tags: [], disabled: false, ideology: {} };
   state.city.push(gpo);
   for (let i = 0; i < 6; i++) {
-    const tile = drawWeightedTile();
+    const tile = drawInitialSafeTile(state);
     if (tile) placeTile(tile);
   }
-  addLog("The city begins with the GPO at the centre and six surrounding tiles.");
+  addLog("The city begins with the GPO at the centre and six safe surrounding tiles.");
 }
 
 function generateOfferChoices() {
@@ -681,7 +691,7 @@ function placeTile(tile) {
   }
   recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
   recomputeAllEdges(state.city, BOARD_SLOTS);
-  state.trafficPressure = calculateTrafficPressure(state.city, BOARD_SLOTS, state.hazard);
+  state.trafficPressure = calculateTrafficPressure(state.city);
 }
 
 // ── Interactive Placement Mode ────────────────────────────────────────────────
@@ -801,6 +811,10 @@ function endBuildStep() {
     if (state.phase === "pressure") {
       addLog("The city has entered the pressure phase. Pollution cards now begin to resolve.");
     }
+    // Traffic effects and transit diagnosis at end of every build round
+    applyTrafficEffects(state);
+    const _transitNote = getTransitDiagnosis(state.city.filter(t => t.name !== "GPO"));
+    if (_transitNote) addLog(_transitNote);
     generateOfferChoices();
     render();
     return;
@@ -1272,7 +1286,7 @@ function render() {
   state.aqi = calculateStructuralAQI();
   recomputeCityDependencies(state.city, [], state.activeSolutions, state.hazard);
   recomputeAllEdges(state.city, BOARD_SLOTS);
-  state.trafficPressure = calculateTrafficPressure(state.city, BOARD_SLOTS, state.hazard);
+  state.trafficPressure = calculateTrafficPressure(state.city);
   els.roundChip.textContent = `${Math.min(state.round, 8)} / 8`;
   els.phaseChip.textContent = state.round <= 3 ? "Foundation" : "Pressure";
   els.windChip.textContent = `${windIcon(state.wind)} ${state.wind}`;

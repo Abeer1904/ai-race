@@ -217,9 +217,27 @@ function getOrthogonalNeighbors(targetSlotIndex, cityTiles, boardSlots) {
 // boardSlots: BOARD_SLOTS constant
 
 function validatePlacement(tileName, targetSlotIndex, cityTiles, boardSlots) {
+  // Zone check first — hard block if tile is not allowed in this zone
+  const targetCellIdx = boardSlots[targetSlotIndex];
+  if (targetCellIdx !== undefined) {
+    const zoneCheck = validateZonePlacement(tileName, targetCellIdx);
+    if (!zoneCheck.allowed) {
+      return {
+        allowed: false,
+        hardConflicts: [],
+        softConflicts: [],
+        preferred: [],
+        penalty: 0,
+        bonus: 0,
+        reason: zoneCheck.reason,
+        zone: zoneCheck.zone
+      };
+    }
+  }
+
   const rule = PLACEMENT_RULES[tileName];
   if (!rule) {
-    return { allowed: true, hardConflicts: [], softConflicts: [], preferred: [], penalty: 0, bonus: 0 };
+    return { allowed: true, hardConflicts: [], softConflicts: [], preferred: [], penalty: 0, bonus: 0, reason: "", zone: targetCellIdx !== undefined ? getZoneForSlot(targetCellIdx) : "outer_city" };
   }
 
   const neighbors = getOrthogonalNeighbors(targetSlotIndex, cityTiles, boardSlots);
@@ -234,7 +252,9 @@ function validatePlacement(tileName, targetSlotIndex, cityTiles, boardSlots) {
     softConflicts,
     preferred,
     penalty:       softConflicts.length,
-    bonus:         preferred.length
+    bonus:         preferred.length,
+    reason:        hardConflicts.length ? `${tileName} cannot be placed next to ${hardConflicts.map(n => n.tile).join(", ")}.` : "",
+    zone:          targetCellIdx !== undefined ? getZoneForSlot(targetCellIdx) : "outer_city"
   };
 }
 

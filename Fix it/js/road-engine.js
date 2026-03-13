@@ -1,52 +1,241 @@
 // road-engine.js
-// Every placed tile occupies one grid cell on a 7×7 board.
-// Each of its four sides has a road edge: open | busy | jammed.
-// Traffic pressure is derived from tile trip-generation demand and neighbour demand.
-// Jammed edges raise AQI (air mode) or heat burden (heat mode).
+// Traffic model v2: trip generation minus transit absorption, with transit cluster bonuses.
+// Zone system: inner_city / outer_city / outskirts controls where tiles can be placed.
+// Jammed city-level traffic raises AQI (air mode) or heat burden (heat mode).
 
-// ── Trip generation demand per tile name (0 = low, 1 = medium, 2 = high, 3 = very high) ──
-const TRAFFIC_DEMAND = {
-  "GPO":                      0,
-  "Forest":                   0,
-  "Public Park":              0,
-  "Barren Land":              0,
-  "Agricultural Land":        0,
-  "Rural Village":            1,
-  "Urban Village":            1,
-  "Slums":                    1,
-  "Affordable Housing":       2,
-  "High-rise Housing":        3,
-  "Sewage Treatment Plant":   0,
-  "Residential Landfill":     1,
-  "City Landfill":            2,
-  "Thermal Power Plant":      2,
-  "Methane Power Plant":      1,
-  "Solar Power Plant":        0,
-  "DG Set":                   0,
-  "EV Charging Station":      1,
-  "CNG Station":              1,
-  "Petrol Pump":              2,
-  "Bus Stop":                 2,
-  "Metro":                    3,
-  "Railway":                  3,
-  "Airport":                  3,
-  "School":                   2,
-  "College":                  2,
-  "Hospital":                 2,
-  "Govt Office":              2,
-  "Pvt Office":               3,
-  "Mall":                     3,
-  "Weekly Market":            2,
-  "Mixed Market":             2,
-  "Hotel":                    3,
-  "SSI":                      2,
-  "Large-scale Industry":     3,
-  "Construction":             2
+// ── City zones: board slot indices ──────────────────────────────────────────
+const CITY_ZONES = {
+  inner_city: [24, 17, 18, 25, 32, 31, 30],
+  outer_city:  [10, 11, 12, 19, 20, 26, 27, 33, 34, 39, 38, 37],
+  outskirts:   [3, 4, 5, 9, 13, 16, 21, 23, 29, 35, 40, 41, 45, 46]
 };
 
-// ── Board geometry helpers ──
+// ── Starting tile blacklist ──────────────────────────────────────────────────
+const STARTING_TILE_BLACKLIST = [
+  "Airport",
+  "Large-scale Industry",
+  "SSI",
+  "City Landfill",
+  "Residential Landfill",
+  "Thermal Power Plant",
+  "Construction"
+];
 
-// BOARD is 7 × 7 (indices 0–48). Row = Math.floor(idx / 7), Col = idx % 7.
+// ── Zone placement rules per tile ───────────────────────────────────────────
+const ZONE_RULES = {
+  "Airport":              { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city", "outer_city"], cannot_be_starting_tile: true  },
+  "Large-scale Industry": { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city"],               cannot_be_starting_tile: true  },
+  "SSI":                  { allowed_zones: ["outer_city", "outskirts"],   banned_zones: ["inner_city"],               cannot_be_starting_tile: true  },
+  "City Landfill":        { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city", "outer_city"], cannot_be_starting_tile: true  },
+  "Residential Landfill": { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city"],               cannot_be_starting_tile: true  },
+  "Thermal Power Plant":  { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city", "outer_city"], cannot_be_starting_tile: true  },
+  "Construction":         { allowed_zones: ["outer_city", "outskirts"],   banned_zones: [],                           cannot_be_starting_tile: true  },
+  "Hotel":                { allowed_zones: ["outer_city", "inner_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Metro":                { allowed_zones: ["inner_city", "outer_city"],  banned_zones: ["outskirts"],                cannot_be_starting_tile: false },
+  "Bus Stop":             { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "School":               { allowed_zones: ["inner_city", "outer_city"],  banned_zones: ["outskirts"],                cannot_be_starting_tile: false },
+  "College":              { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Hospital":             { allowed_zones: ["inner_city", "outer_city"],  banned_zones: ["outskirts"],                cannot_be_starting_tile: false },
+  "High-rise Housing":    { allowed_zones: ["inner_city", "outer_city"],  banned_zones: ["outskirts"],                cannot_be_starting_tile: false },
+  "Affordable Housing":   { allowed_zones: ["outer_city", "inner_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Forest":               { allowed_zones: ["outer_city", "outskirts"],   banned_zones: [],                           cannot_be_starting_tile: false },
+  "Public Park":          { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Weekly Market":        { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Mixed Market":         { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Pvt. Office":          { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Govt. Office":         { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Solar Power Plant":    { allowed_zones: ["outer_city", "outskirts"],   banned_zones: [],                           cannot_be_starting_tile: false },
+  "Methane Power Plant":  { allowed_zones: ["outskirts", "outer_city"],   banned_zones: ["inner_city"],               cannot_be_starting_tile: false },
+  "Petrol Pump":          { allowed_zones: ["outer_city", "outskirts"],   banned_zones: ["inner_city"],               cannot_be_starting_tile: false },
+  "CNG Station":          { allowed_zones: ["outer_city", "outskirts"],   banned_zones: [],                           cannot_be_starting_tile: false },
+  "EV Charging Station":  { allowed_zones: ["inner_city", "outer_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Slums":                { allowed_zones: ["outer_city", "inner_city"],  banned_zones: [],                           cannot_be_starting_tile: false },
+  "Urban Village":        { allowed_zones: ["outer_city"],                banned_zones: ["inner_city", "outskirts"],  cannot_be_starting_tile: false },
+  "Rural Village":        { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city"],               cannot_be_starting_tile: false },
+  "Agricultural Land":    { allowed_zones: ["outskirts"],                 banned_zones: ["inner_city"],               cannot_be_starting_tile: false },
+  "Barren Land":          { allowed_zones: ["outer_city", "outskirts"],   banned_zones: [],                           cannot_be_starting_tile: false }
+};
+
+// ── Traffic profiles: trip generation and transit absorption per tile ────────
+const TRAFFIC_PROFILES = {
+  "Airport":                { generates: 4, absorbs: 0 },
+  "Large-scale Industry":   { generates: 3, absorbs: 0 },
+  "SSI":                    { generates: 2, absorbs: 0 },
+  "Hotel":                  { generates: 2, absorbs: 0 },
+  "Mall":                   { generates: 3, absorbs: 0 },
+  "Weekly Market":          { generates: 2, absorbs: 0 },
+  "Mixed Market":           { generates: 2, absorbs: 0 },
+  "Pvt. Office":            { generates: 2, absorbs: 0 },
+  "Pvt Office":             { generates: 2, absorbs: 0 },
+  "Govt. Office":           { generates: 1, absorbs: 0 },
+  "Govt Office":            { generates: 1, absorbs: 0 },
+  "School":                 { generates: 2, absorbs: 0 },
+  "College":                { generates: 3, absorbs: 0 },
+  "Hospital":               { generates: 2, absorbs: 0 },
+  "High-rise Housing":      { generates: 3, absorbs: 0 },
+  "Affordable Housing":     { generates: 2, absorbs: 0 },
+  "Slums":                  { generates: 1, absorbs: 0 },
+  "Urban Village":          { generates: 1, absorbs: 0 },
+  "Rural Village":          { generates: 1, absorbs: 0 },
+  "Metro":                  { generates: 0, absorbs: 4 },
+  "Bus Stop":               { generates: 0, absorbs: 2 },
+  "Railway":                { generates: 0, absorbs: 3 },
+  "Forest":                 { generates: 0, absorbs: 0 },
+  "Public Park":            { generates: 0, absorbs: 0 },
+  "Solar Power Plant":      { generates: 0, absorbs: 0 },
+  "Methane Power Plant":    { generates: 1, absorbs: 0 },
+  "Thermal Power Plant":    { generates: 2, absorbs: 0 },
+  "City Landfill":          { generates: 1, absorbs: 0 },
+  "Residential Landfill":   { generates: 1, absorbs: 0 },
+  "Sewage Treatment Plant": { generates: 1, absorbs: 0 },
+  "Petrol Pump":            { generates: 1, absorbs: 0 },
+  "CNG Station":            { generates: 1, absorbs: 0 },
+  "EV Charging Station":    { generates: 0, absorbs: 1 },
+  "Construction":           { generates: 2, absorbs: 0 },
+  "Agricultural Land":      { generates: 0, absorbs: 0 },
+  "Barren Land":            { generates: 0, absorbs: 0 },
+  "GPO":                    { generates: 0, absorbs: 0 },
+  "DG Set":                 { generates: 0, absorbs: 0 }
+};
+
+// ── Zone helpers ─────────────────────────────────────────────────────────────
+
+function getZoneForSlot(slotIndex) {
+  if (CITY_ZONES.inner_city.includes(slotIndex)) return "inner_city";
+  if (CITY_ZONES.outer_city.includes(slotIndex)) return "outer_city";
+  if (CITY_ZONES.outskirts.includes(slotIndex))  return "outskirts";
+  return "outer_city"; // default for unmapped slots
+}
+
+function isAllowedStartingTile(tileName) {
+  return !STARTING_TILE_BLACKLIST.includes(tileName);
+}
+
+// ── Zone placement validation ─────────────────────────────────────────────────
+
+function validateZonePlacement(tileName, slotIndex) {
+  const zone = getZoneForSlot(slotIndex);
+  const rule = ZONE_RULES[tileName];
+
+  if (!rule) {
+    return { allowed: true, zone, reason: "" };
+  }
+
+  if (rule.banned_zones.includes(zone)) {
+    return {
+      allowed: false,
+      zone,
+      reason: `${tileName} cannot be placed in the ${zone.replace(/_/g, " ")}.`
+    };
+  }
+
+  if (!rule.allowed_zones.includes(zone)) {
+    return {
+      allowed: false,
+      zone,
+      reason: `${tileName} is not allowed in the ${zone.replace(/_/g, " ")}.`
+    };
+  }
+
+  return { allowed: true, zone, reason: "" };
+}
+
+// ── Transit cluster bonus ─────────────────────────────────────────────────────
+// Returns extra absorption points when transit tiles complement each other.
+
+function getTransitClusterBonus(cityTiles) {
+  const names = cityTiles.map(t => t.name);
+  let bonus = 0;
+
+  if (names.includes("Metro")    && names.includes("Bus Stop"))          bonus += 2;
+  if (names.includes("Metro")    && names.includes("College"))           bonus += 1;
+  if (names.includes("Metro")    && names.includes("High-rise Housing")) bonus += 1;
+  if (names.includes("Metro")    && names.includes("Affordable Housing"))bonus += 1;
+  if (names.includes("Bus Stop") && names.includes("School"))            bonus += 1;
+  if (names.includes("Bus Stop") && names.includes("Weekly Market"))     bonus += 1;
+  if (names.includes("Railway")  && names.includes("Bus Stop"))          bonus += 1;
+
+  return bonus;
+}
+
+// ── City-level traffic pressure (v2) ─────────────────────────────────────────
+// Returns { generated, absorbed, clusterBonus, netTraffic, state }
+
+function calculateTrafficPressure(cityTiles) {
+  const tiles = cityTiles.filter(t => t.name !== "GPO");
+
+  const totalGenerated = tiles.reduce((sum, tile) => {
+    const profile = TRAFFIC_PROFILES[tile.name] || { generates: 0, absorbs: 0 };
+    return sum + profile.generates;
+  }, 0);
+
+  const totalAbsorbed = tiles.reduce((sum, tile) => {
+    const profile = TRAFFIC_PROFILES[tile.name] || { generates: 0, absorbs: 0 };
+    return sum + profile.absorbs;
+  }, 0);
+
+  const clusterBonus = getTransitClusterBonus(tiles);
+  const netTraffic   = Math.max(0, totalGenerated - totalAbsorbed - clusterBonus);
+
+  return {
+    generated:    totalGenerated,
+    absorbed:     totalAbsorbed,
+    clusterBonus,
+    netTraffic,
+    // backwards-compat fields used by old render code
+    jamCount:     netTraffic > 7 ? 1 : 0,
+    busyCount:    (netTraffic > 3 && netTraffic <= 7) ? 1 : 0,
+    openCount:    netTraffic <= 3 ? 1 : 0,
+    raw:          netTraffic,
+    rounded:      Math.round(netTraffic),
+    state:        netTraffic <= 3 ? "open" : netTraffic <= 7 ? "busy" : "jammed"
+  };
+}
+
+// ── Apply city traffic effects to state ──────────────────────────────────────
+
+function applyTrafficEffects(state) {
+  const traffic = calculateTrafficPressure(state.city);
+  state.trafficPressure = traffic;
+
+  if (traffic.state === "busy") {
+    state.aqi = Math.min(12, state.aqi + 1);
+    addLog("Traffic is busy. AQI rose because road edges are under pressure.");
+  }
+
+  if (traffic.state === "jammed") {
+    state.aqi = Math.min(12, state.aqi + 2);
+    state.pressures.electricity = Math.min(100, state.pressures.electricity + 1);
+    addLog("Traffic is jammed. AQI rose sharply because mobility demand exceeded transit absorption.");
+  }
+
+  if (state.hazard === "heat" && traffic.state !== "open") {
+    state.aqi = Math.min(12, state.aqi + 1);
+    addLog("Traffic increased heat exposure along hard-surface corridors.");
+  }
+
+  return traffic;
+}
+
+// ── Transit diagnosis ─────────────────────────────────────────────────────────
+
+function getTransitDiagnosis(cityTiles) {
+  const names = cityTiles.map(t => t.name);
+
+  if (names.includes("Metro") && names.includes("Bus Stop") && names.includes("College")) {
+    return "Transit cluster active: Metro + Bus Stop + College reduced traffic pressure.";
+  }
+  if (names.includes("Metro") && !names.includes("Bus Stop")) {
+    return "Metro underused: missing feeder bus access.";
+  }
+  if (names.includes("Bus Stop") && !names.includes("Metro") && names.includes("High-rise Housing")) {
+    return "Bus-led mobility is carrying local trips, but high-capacity transit is still missing.";
+  }
+  return "";
+}
+
+// ── Board geometry helpers ────────────────────────────────────────────────────
+
 function cellRowCol(idx) {
   return { row: Math.floor(idx / 7), col: idx % 7 };
 }
@@ -56,7 +245,6 @@ function cellIndex(row, col) {
   return row * 7 + col;
 }
 
-// Returns { top, right, bottom, left } cell indices (null if off-board).
 function orthogonalIndices(idx) {
   const { row, col } = cellRowCol(idx);
   return {
@@ -67,22 +255,12 @@ function orthogonalIndices(idx) {
   };
 }
 
-// ── Edge state derivation ──
-// combined demand of tile + neighbour tile across a shared edge
-// 0–1 → open, 2–3 → busy, 4+ → jammed
-
-function edgeTrafficState(demandA, demandB) {
-  const combined = demandA + demandB;
-  if (combined <= 1) return "open";
-  if (combined <= 3) return "busy";
-  return "jammed";
-}
-
-// ── Build grid lookup: cellIndex → tile name ──
-// cityTiles: state.city array; BOARD_SLOTS: array of cell indices per placement order
+// ── Per-edge traffic state (used for board-cell visual edges) ─────────────────
+// Derives each edge state from the city-level traffic.state so visual edges
+// stay consistent with the new aggregate model.
 
 function buildGridLookup(cityTiles, boardSlots) {
-  const grid = {}; // cellIndex → tile name
+  const grid = {};
   cityTiles.forEach((tile, i) => {
     const idx = boardSlots[i] ?? boardSlots[boardSlots.length - 1];
     grid[idx] = tile.name;
@@ -90,34 +268,29 @@ function buildGridLookup(cityTiles, boardSlots) {
   return grid;
 }
 
-// ── Compute edges for a single cell given the full grid ──
-
-function computeEdgesForCell(cellIdx, grid) {
+function computeEdgesForCell(cellIdx, grid, cityTrafficState) {
   const tileName = grid[cellIdx];
   if (!tileName) return null;
-  const demand = TRAFFIC_DEMAND[tileName] ?? 1;
   const neighbors = orthogonalIndices(cellIdx);
   const edges = {};
   for (const [side, neighborIdx] of Object.entries(neighbors)) {
-    const neighborName = neighborIdx !== null ? grid[neighborIdx] : null;
-    const neighborDemand = neighborName ? (TRAFFIC_DEMAND[neighborName] ?? 1) : 0;
+    const hasNeighbor = neighborIdx !== null && grid[neighborIdx];
+    // Edge is only drawn when there is an adjacent occupied cell.
+    // State mirrors city-level traffic so visual and systemic are coherent.
     edges[side] = {
-      road: true,
-      traffic: edgeTrafficState(demand, neighborDemand)
+      road:    !!hasNeighbor,
+      traffic: hasNeighbor ? cityTrafficState : "open"
     };
   }
   return edges;
 }
 
-// ── Recompute all city tile edges, storing result on each tile object ──
-// cityTiles: state.city array
-// boardSlots: BOARD_SLOTS constant from fix-it.js
-
 function recomputeAllEdges(cityTiles, boardSlots) {
+  const cityTrafficState = calculateTrafficPressure(cityTiles).state;
   const grid = buildGridLookup(cityTiles, boardSlots);
   cityTiles.forEach((tile, i) => {
     const cellIdx = boardSlots[i] ?? boardSlots[boardSlots.length - 1];
-    tile.edges = computeEdgesForCell(cellIdx, grid) || {
+    tile.edges = computeEdgesForCell(cellIdx, grid, cityTrafficState) || {
       top:    { road: true, traffic: "open" },
       right:  { road: true, traffic: "open" },
       bottom: { road: true, traffic: "open" },
@@ -126,46 +299,7 @@ function recomputeAllEdges(cityTiles, boardSlots) {
   });
 }
 
-// ── Traffic pressure summary for the whole city ──
-// Returns { jamCount, busyCount, openCount, aqiContribution, heatContribution }
-// open = 0, busy = +0.5, jammed = +1 (accumulated, rounded at call site)
-
-function calculateTrafficPressure(cityTiles, boardSlots, mode) {
-  // Recompute fresh edge set (non-mutating version)
-  const grid = buildGridLookup(cityTiles, boardSlots);
-  let jamCount = 0, busyCount = 0, openCount = 0;
-
-  // Count each shared edge once: only process right and bottom to avoid double-counting
-  cityTiles.forEach((tile, i) => {
-    const cellIdx = boardSlots[i] ?? boardSlots[boardSlots.length - 1];
-    const demand = TRAFFIC_DEMAND[tile.name] ?? 1;
-    const { right, bottom } = orthogonalIndices(cellIdx);
-
-    for (const neighborIdx of [right, bottom]) {
-      if (neighborIdx === null) continue;
-      const neighborName = grid[neighborIdx];
-      if (!neighborName) continue;
-      const neighborDemand = TRAFFIC_DEMAND[neighborName] ?? 1;
-      const edgeState = edgeTrafficState(demand, neighborDemand);
-      if (edgeState === "jammed") jamCount++;
-      else if (edgeState === "busy") busyCount++;
-      else openCount++;
-    }
-  });
-
-  const raw = busyCount * 0.5 + jamCount * 1.0;
-  return {
-    jamCount,
-    busyCount,
-    openCount,
-    raw,
-    rounded: Math.round(raw),
-    aqiContribution:  mode === "air"  ? raw : 0,
-    heatContribution: mode === "heat" ? raw : 0
-  };
-}
-
-// ── Edge label helpers for UI ──
+// ── Edge label helpers for UI ─────────────────────────────────────────────────
 
 function trafficLabel(edgeState) {
   if (edgeState === "jammed") return "Jammed";
@@ -181,8 +315,7 @@ function worstEdge(edges) {
   return "open";
 }
 
-// ── Per-tile traffic note for UI ──
-// Returns a short string like "Road: busy on 2 sides." or "" if all open.
+// ── Per-tile traffic note for UI ──────────────────────────────────────────────
 
 function tileTrafficNote(tile) {
   if (!tile.edges) return "";
