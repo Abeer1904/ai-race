@@ -645,16 +645,18 @@ function confirmOffers() {
   const unselected = state.offerChoices.filter(t => !state.selectedOffers.includes(t.id));
   unselected.forEach(t => state.deck.push(t));
   state.deck = shuffle(state.deck);
-  selected.forEach(tile => {
-    placeTile(tile);
-    addLog(`Built ${tile.name}. AQI ${formatSigned(tile.aqiShift)}. Development +${tile.development}.`);
-  });
-  state.offerChoices = [];
-  state.selectedOffers = [];
+  // Hide the offer panel while player places tiles
   els.offerGrid.innerHTML = "";
   els.selectionPreview.innerHTML = "";
   els.confirmOffersBtn.disabled = true;
-  endBuildStep();
+  els.confirmOffersBtn.style.display = "none";
+  state.offerChoices = [];
+  state.selectedOffers = [];
+  // Enter interactive placement mode: player places each tile one at a time
+  startPlacementMode(selected, () => {
+    els.confirmOffersBtn.style.display = "";
+    endBuildStep();
+  });
 }
 
 function placeTile(tile) {
@@ -681,6 +683,110 @@ function placeTile(tile) {
   recomputeAllEdges(state.city, BOARD_SLOTS);
   state.trafficPressure = calculateTrafficPressure(state.city, BOARD_SLOTS, state.hazard);
 }
+
+// ── Interactive Placement Mode ────────────────────────────────────────────────
+// Lets the player choose which board cell each selected tile goes to.
+// Uses BOARD_SLOTS element-swapping: when the player picks cell X,
+// BOARD_SLOTS[targetPos] ↔ BOARD_SLOTS[chosenIdx] so placeTile() always
+// writes to state.city.length and renderBoard() resolves it correctly.
+
+const _placement = {
+  queue: [],        // tiles still to place
+  onDone: null,     // callback when all tiles are placed
+  active: false
+};
+
+function startPlacementMode(tiles, onDone) {
+  _placement.queue = tiles.slice();
+  _placement.onDone = onDone;
+  _placement.active = true;
+  _showPlacementStep();
+}
+
+function _showPlacementStep() {
+  if (_placement.queue.length === 0) {
+    _placement.active = false;
+    _clearPlacementHighlights();
+    _placement.onDone && _placement.onDone();
+    return;
+  }
+  const tile = _placement.queue[0];
+  // Render first so the board-grid cells exist in the DOM
+  render();
+  // Show instruction banner on the board
+  let hint = els.board.querySelector(".placement-click-hint");
+  if (!hint) {
+    hint = document.createElement("div");
+    hint.className = "placement-click-hint";
+    els.board.appendChild(hint);
+  }
+  hint.innerHTML = `
+    <span class="pch-tile-swatch" style="background:${colorValue(tile.color)}"></span>
+    <span>Place <strong>${tile.name}</strong> — click a highlighted cell</span>
+  `;
+  _highlightPlacementCells(tile);
+}
+
+function _highlightPlacementCells(tile) {
+  _clearPlacementHighlights();
+  // Offer the next 4 available slots as placement targets
+  // (from current city.length up to min(city.length+4, BOARD_SLOTS.length-1))
+  const startPos = state.city.length;
+  const endPos   = Math.min(startPos + 4, BOARD_SLOTS.length - 1);
+  const grid = els.board.querySelector(".board-grid");
+  if (!grid) { render(); return; }
+  const cells = grid.querySelectorAll(".board-cell");
+  for (let pos = startPos; pos < endPos; pos++) {
+    const cellIdx = BOARD_SLOTS[pos];
+    const cell = cells[cellIdx];
+    if (!cell) continue;
+    // Skip cells already occupied
+    if (cell.querySelector(".hex-tile")) continue;
+    cell.classList.add("placement-available");
+    // Tile-colour preview overlay
+    const preview = document.createElement("div");
+    preview.className = "placement-preview";
+    preview.style.setProperty("--tile-color", colorValue(tile.color));
+    preview.innerHTML = `<span class="placement-tile-name">${tile.name}</span>`;
+    cell.appendChild(preview);
+    cell.addEventListener("click", _onPlacementCellClick, { once: true });
+    cell.dataset.placementPos = pos;
+  }
+}
+
+function _onPlacementCellClick(e) {
+  if (!_placement.active) return;
+  const cell = e.currentTarget;
+  const chosenPos = parseInt(cell.dataset.placementPos, 10);
+  const targetPos = state.city.length;  // where placeTile() will write
+  // Swap BOARD_SLOTS so the player's chosen cell becomes the next slot
+  if (chosenPos !== targetPos) {
+    const tmp = BOARD_SLOTS[targetPos];
+    BOARD_SLOTS[targetPos] = BOARD_SLOTS[chosenPos];
+    BOARD_SLOTS[chosenPos] = tmp;
+  }
+  _clearPlacementHighlights();
+  const tile = _placement.queue.shift();
+  placeTile(tile);
+  addLog(`Built ${tile.name} — placed on the board. AQI ${formatSigned(tile.aqiShift)}. Development +${tile.development}.`);
+  render();
+  _showPlacementStep();
+}
+
+function _clearPlacementHighlights() {
+  const grid = els.board && els.board.querySelector(".board-grid");
+  if (grid) {
+    grid.querySelectorAll(".placement-available").forEach(cell => {
+      cell.classList.remove("placement-available");
+      cell.querySelectorAll(".placement-preview").forEach(el => el.remove());
+      cell.removeEventListener("click", _onPlacementCellClick);
+      delete cell.dataset.placementPos;
+    });
+  }
+  const hint = els.board && els.board.querySelector(".placement-click-hint");
+  if (hint) hint.remove();
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 function endBuildStep() {
   advanceBasePressures();
