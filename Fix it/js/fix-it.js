@@ -1232,6 +1232,16 @@ function renderBoard() {
       ${tile.name === "GPO" ? "" : depNote}
       ${tile.name === "GPO" ? "" : trafficNote}
     `;
+    // Road-edge indicators — asphalt strips at each side showing traffic state
+    if (tile.edges) {
+      ["top", "right", "bottom", "left"].forEach(side => {
+        const edgeEl = document.createElement("div");
+        const traffic = tile.edges[side]?.traffic || "open";
+        edgeEl.className = `road-edge road-edge--${side} road-edge--${traffic}`;
+        edgeEl.title = `${side[0].toUpperCase() + side.slice(1)}: ${traffic}`;
+        div.appendChild(edgeEl);
+      });
+    }
     host.appendChild(div);
   });
   els.board.appendChild(grid);
