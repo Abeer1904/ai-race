@@ -71,6 +71,19 @@ TILES.forEach(tile => {
   }
 });
 
+// Enrich every TILE_LIBRARY entry with economics + needs from the data layer
+TILE_LIBRARY.forEach(tile => {
+  const def = getTileByName(tile.name);
+  if (!def) return;
+  tile.build_cost           = def.build_cost;
+  tile.maintenance_cost     = def.maintenance_cost;
+  tile.repair_cost          = def.repair_cost;
+  tile.revenue              = def.revenue;
+  tile.needs                = structuredClone(def.needs);
+  tile.failure_if_unmaintained = structuredClone(def.failure_if_unmaintained);
+  tile.tileDiagnosis        = def.diagnosis ? def.diagnosis.slice() : [];
+});
+
 const POLLUTION_CARDS = [
   { headline: "Commercial trucks from neighbouring cities keep delivering pollution", targets: ["Large-scale Industry", "Airport", "Railway"], pollutionTokens: 2, aqi: 2, weaken: null, tileEffect: null },
   { headline: "Air pollution from thermal power plants impact the health of both near and far", targets: ["Thermal Power Plant"], pollutionTokens: 4, aqi: 2, weaken: "citizen", tileEffect: { type: "add", tile: "Thermal Power Plant" } },
@@ -297,7 +310,9 @@ const state = {
   ended: false,
   activeSolutions: [],
   trafficPressure: { jamCount: 0, busyCount: 0, openCount: 0, raw: 0, rounded: 0, aqiContribution: 0, heatContribution: 0 },
-  history: { tiles: [], categories: {} }
+  history: { tiles: [], categories: {} },
+  cityFinance: structuredClone(CITY_FINANCE),
+  cityNeeds: structuredClone(CITY_NEEDS)
 };
 
 const els = {
@@ -435,6 +450,8 @@ function resetState() {
   state.activeSolutions = [];
   state.trafficPressure = { jamCount: 0, busyCount: 0, openCount: 0, raw: 0, rounded: 0, aqiContribution: 0, heatContribution: 0 };
   state.history = { tiles: [], categories: {} };
+  state.cityFinance = structuredClone(CITY_FINANCE);
+  state.cityNeeds   = structuredClone(CITY_NEEDS);
 }
 
 // ── Hazard helpers ──
@@ -780,7 +797,9 @@ function resolvePollutionPhase() {
 
   applyTileEffect(card.tileEffect);
 
+  const _cardDx = getCardDiagnosis(card.headline, state.hazard);
   addLog(`${state.hazard === "heat" ? "Heat shock" : "Pollution shock"}: ${card.headline} ${getHazardLabel()} ${formatSigned(stressDelta)}.`);
+  addLog(_cardDx);
 
   els.currentEventCard.className = "event-card active";
   els.currentEventCard.innerHTML = `
@@ -926,7 +945,9 @@ function confirmSolutions() {
     Object.entries(card.logicShift || {}).forEach(([k, v]) => {
       state.ideologies[k] = Math.max(0, state.ideologies[k] + v);
     });
+    const _solDx = getSolutionDiagnosis(card.headline, state.hazard);
     addLog(`Solution adopted: ${card.headline}. ${getHazardLabel()} ${formatSigned(stressDelta)}.`);
+    addLog(_solDx);
     if (!state.activeSolutions.includes(card.headline)) state.activeSolutions.push(card.headline);
   });
   state.solutionChoices = [];
