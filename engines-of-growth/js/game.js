@@ -264,6 +264,132 @@ const ALL_POLICIES = [
     desc:'Extend the MSME credit ecosystem to peri-urban and rural areas surrounding Navapur.' },
 ];
 
+/* ══════════════════════════════════════════════════════════════
+   HIDDEN SYSTEM LAYER
+   Sits beneath the visible bar economy. Policies accumulate hidden
+   system points when pushed; industries check them before building.
+   ══════════════════════════════════════════════════════════════ */
+
+const HIDDEN_SYSTEMS = [
+  "Credit", "Power", "Compliance", "Market", "Logistics",
+  "Quality", "Cluster", "Export", "Digital", "Green"
+];
+
+/* ── Hidden state store (not rendered on main UI) ─────────── */
+const hiddenState = {
+  Credit: 0, Power: 0, Compliance: 0, Market: 0, Logistics: 0,
+  Quality: 0, Cluster: 0, Export: 0, Digital: 0, Green: 0
+};
+
+/* ── Policy → hidden system mapping ──────────────────────── */
+const POLICY_HIDDEN_LAYER = {
+  credit_s1:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  credit_s2:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  credit_s3:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  skills_s1:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  skills_s2:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  skills_s3:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Cluster",    secondaryGain:1 },
+  digital_s1: { primaryHiddenSystem:"Digital",    primaryGain:2, secondaryHiddenSystem:"Cluster",    secondaryGain:1 },
+  digital_s2: { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  digital_s3: { primaryHiddenSystem:"Digital",    primaryGain:2, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  entrep_s1:  { primaryHiddenSystem:"Compliance", primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  entrep_s2:  { primaryHiddenSystem:"Cluster",    primaryGain:2, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  entrep_s3:  { primaryHiddenSystem:"Market",     primaryGain:2, secondaryHiddenSystem:"Export",     secondaryGain:1 },
+  infra_s1:   { primaryHiddenSystem:"Cluster",    primaryGain:2, secondaryHiddenSystem:"Logistics",  secondaryGain:1 },
+  infra_s2:   { primaryHiddenSystem:"Power",      primaryGain:2, secondaryHiddenSystem:"Green",      secondaryGain:1 },
+  infra_s3:   { primaryHiddenSystem:"Compliance", primaryGain:2, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  green_s1:   { primaryHiddenSystem:"Green",      primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  green_s2:   { primaryHiddenSystem:"Green",      primaryGain:2, secondaryHiddenSystem:"Quality",    secondaryGain:1 },
+  green_s3:   { primaryHiddenSystem:"Green",      primaryGain:2, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s1_01:  { primaryHiddenSystem:"Market",     primaryGain:1, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s1_02:  { primaryHiddenSystem:"Digital",    primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s1_03:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s1_04:  { primaryHiddenSystem:"Compliance", primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s1_05:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s1_06:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Compliance", secondaryGain:1 },
+  s1_07:  { primaryHiddenSystem:"Digital",    primaryGain:2, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s1_08:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  s1_09:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s1_10:  { primaryHiddenSystem:"Cluster",    primaryGain:2, secondaryHiddenSystem:"Logistics",  secondaryGain:1 },
+  s1_11:  { primaryHiddenSystem:"Quality",    primaryGain:1, secondaryHiddenSystem:"Compliance", secondaryGain:1 },
+  s1_12:  { primaryHiddenSystem:"Credit",     primaryGain:1, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s1_13:  { primaryHiddenSystem:"Compliance", primaryGain:2, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s1_14:  { primaryHiddenSystem:"Compliance", primaryGain:1, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s1_15:  { primaryHiddenSystem:"Credit",     primaryGain:1, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  s2_01:  { primaryHiddenSystem:"Quality",    primaryGain:1, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s2_02:  { primaryHiddenSystem:"Compliance", primaryGain:2, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s2_03:  { primaryHiddenSystem:"Power",      primaryGain:1, secondaryHiddenSystem:"Digital",    secondaryGain:1 },
+  s2_04:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s2_05:  { primaryHiddenSystem:"Market",     primaryGain:1, secondaryHiddenSystem:"Quality",    secondaryGain:1 },
+  s2_06:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s2_07:  { primaryHiddenSystem:"Market",     primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s2_08:  { primaryHiddenSystem:"Digital",    primaryGain:1, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s2_09:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Compliance", secondaryGain:1 },
+  s2_10:  { primaryHiddenSystem:"Power",      primaryGain:2, secondaryHiddenSystem:"",          secondaryGain:0 },
+  s2_11:  { primaryHiddenSystem:"Credit",     primaryGain:1, secondaryHiddenSystem:"Cluster",    secondaryGain:1 },
+  s2_12:  { primaryHiddenSystem:"Quality",    primaryGain:1, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s2_13:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Compliance", secondaryGain:1 },
+  s2_14:  { primaryHiddenSystem:"Green",      primaryGain:1, secondaryHiddenSystem:"Quality",    secondaryGain:1 },
+  s2_15:  { primaryHiddenSystem:"Cluster",    primaryGain:2, secondaryHiddenSystem:"Quality",    secondaryGain:1 },
+  s3_01:  { primaryHiddenSystem:"Market",     primaryGain:2, secondaryHiddenSystem:"Export",     secondaryGain:1 },
+  s3_02:  { primaryHiddenSystem:"Export",     primaryGain:2, secondaryHiddenSystem:"Quality",    secondaryGain:1 },
+  s3_03:  { primaryHiddenSystem:"Credit",     primaryGain:1, secondaryHiddenSystem:"Power",      secondaryGain:1 },
+  s3_04:  { primaryHiddenSystem:"Cluster",    primaryGain:2, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s3_05:  { primaryHiddenSystem:"Export",     primaryGain:2, secondaryHiddenSystem:"Compliance", secondaryGain:1 },
+  s3_06:  { primaryHiddenSystem:"Quality",    primaryGain:2, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+  s3_07:  { primaryHiddenSystem:"Cluster",    primaryGain:1, secondaryHiddenSystem:"Credit",     secondaryGain:1 },
+  s3_08:  { primaryHiddenSystem:"Credit",     primaryGain:2, secondaryHiddenSystem:"Market",     secondaryGain:1 },
+};
+
+/* ── Hidden requirements per enterprise ──────────────────── */
+// Derived from source industry cards' implied sectoral needs.
+// Blank = no hidden requirement (starting enterprises stay open).
+const ENTERPRISE_HIDDEN_REQUIREMENTS = {
+  // Micro — accessible with minimal hidden system build-up
+  e01: { Quality: 2 },                          // Spice Grinding — food quality matters
+  e02: { Cluster: 2 },                          // Handloom — needs artisan cluster
+  e03: {},                                       // Street Food — no hidden requirement
+  e04: { Digital: 2 },                          // Mobile Repair — digital ecosystem
+  e05: { Quality: 2, Compliance: 1 },           // Papad — food standards
+  e06: { Cluster: 2 },                          // Bamboo — craft cluster
+  // Small — meaningful hidden gates
+  e07: { Logistics: 2, Credit: 3 },             // Cold Chain — logistics + credit
+  e08: { Quality: 3, Cluster: 2 },              // Auto Parts — quality + cluster
+  e09: { Quality: 3, Compliance: 2 },           // Organic Food — certification
+  e10: { Export: 2, Quality: 2 },               // Garment Export — export system
+  // Medium — significant hidden gates
+  e11: { Quality: 4, Compliance: 3, Export: 2 }, // Pharma Packaging
+  e12: { Green: 3, Power: 2, Quality: 3 },       // Solar Assembly
+};
+
+/* ── Hidden layer helpers ─────────────────────────────────── */
+
+function applyHiddenPolicy(policyId) {
+  const meta = POLICY_HIDDEN_LAYER[policyId];
+  if (!meta) return;
+  hiddenState[meta.primaryHiddenSystem] =
+    (hiddenState[meta.primaryHiddenSystem] || 0) + meta.primaryGain;
+  if (meta.secondaryHiddenSystem && meta.secondaryGain) {
+    hiddenState[meta.secondaryHiddenSystem] =
+      (hiddenState[meta.secondaryHiddenSystem] || 0) + meta.secondaryGain;
+  }
+}
+
+function getPolicyHiddenMeta(policyId) {
+  return POLICY_HIDDEN_LAYER[policyId] || null;
+}
+
+function getHiddenRequirements(enterpriseId) {
+  return ENTERPRISE_HIDDEN_REQUIREMENTS[enterpriseId] || {};
+}
+
+function meetsHiddenRequirements(enterpriseId) {
+  const reqs = getHiddenRequirements(enterpriseId);
+  return Object.entries(reqs).every(
+    ([system, needed]) => (hiddenState[system] || 0) >= needed
+  );
+}
+
 /* ── Enterprise card corpus ───────────────────────────────── */
 
 const ENTERPRISES = [
@@ -368,9 +494,14 @@ function getStageUnlocked() {
 }
 
 function canAffordEnterprise(enterprise) {
-  return Object.entries(enterprise.cost).every(
+  const visibleOk = Object.entries(enterprise.cost).every(
     ([pillar, cost]) => (state.bars[pillar] || 0) >= cost
   );
+  const hiddenReq = ENTERPRISE_HIDDEN_REQUIREMENTS[enterprise.id] || {};
+  const hiddenOk  = Object.entries(hiddenReq).every(
+    ([system, needed]) => (hiddenState[system] || 0) >= needed
+  );
+  return visibleOk && hiddenOk;
 }
 
 function checkSuiteCompletion() {
@@ -427,10 +558,13 @@ function pushPolicy(policyId) {
   const policy = ALL_POLICIES.find(p => p.id === policyId);
   if (!policy) return false;
 
-  // Apply immediate bar gains
+  // Apply immediate visible bar gains
   Object.entries(policy.immediate).forEach(([pillar, val]) => {
     state.bars[pillar] = clamp((state.bars[pillar] || 0) + val, 0, MAX_BAR);
   });
+
+  // Apply hidden system accumulation
+  applyHiddenPolicy(policyId);
 
   state.pushedPolicies.push(policyId);
   state.roundPushes.push(policyId);
