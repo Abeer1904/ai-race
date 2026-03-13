@@ -345,21 +345,21 @@ const POLICY_HIDDEN_LAYER = {
 // Derived from source industry cards' implied sectoral needs.
 // Blank = no hidden requirement (starting enterprises stay open).
 const ENTERPRISE_HIDDEN_REQUIREMENTS = {
-  // Micro — accessible with minimal hidden system build-up
-  e01: { Quality: 2 },                          // Spice Grinding — food quality matters
-  e02: { Cluster: 2 },                          // Handloom — needs artisan cluster
-  e03: {},                                       // Street Food — no hidden requirement
-  e04: { Digital: 2 },                          // Mobile Repair — digital ecosystem
-  e05: { Quality: 2, Compliance: 1 },           // Papad — food standards
-  e06: { Cluster: 2 },                          // Bamboo — craft cluster
-  // Small — meaningful hidden gates
-  e07: { Logistics: 2, Credit: 3 },             // Cold Chain — logistics + credit
-  e08: { Quality: 3, Cluster: 2 },              // Auto Parts — quality + cluster
-  e09: { Quality: 3, Compliance: 2 },           // Organic Food — certification
-  e10: { Export: 2, Quality: 2 },               // Garment Export — export system
-  // Medium — significant hidden gates
-  e11: { Quality: 4, Compliance: 3, Export: 2 }, // Pharma Packaging
-  e12: { Green: 3, Power: 2, Quality: 3 },       // Solar Assembly
+  // ── Micro (1–2 hidden systems) ──────────────────────────
+  e01: { Credit: 1, Compliance: 1 },     // Spice Grinding Unit — finance-readiness + formalisation
+  e02: { Market: 1, Quality: 1 },        // Handloom Weaving Cooperative — saleability + reliability
+  e03: { Credit: 1, Compliance: 1 },     // Street Food Cart Cluster — informal-to-formal readiness
+  e04: { Digital: 1, Quality: 1 },       // Mobile Phone Repair Hub — tech ecosystem
+  e05: { Credit: 1, Compliance: 1 },     // Papad Manufacturing Unit — finance-readiness + formalisation
+  e06: { Market: 1, Quality: 1 },        // Bamboo Furniture Workshop — saleability + reliability
+  // ── Small (2–3 hidden systems) ──────────────────────────
+  e07: { Power: 1, Logistics: 2, Quality: 1 },   // Cold Chain Logistics Unit — enabling infrastructure
+  e08: { Cluster: 1, Logistics: 1, Quality: 1 }, // Auto Parts Fabrication — production ecosystem
+  e09: { Compliance: 1, Quality: 2, Market: 1 }, // Organic Food Processing — legitimacy + route-to-market
+  e10: { Market: 1, Quality: 1, Export: 1 },     // Garment Export Unit — export grammar
+  // ── Medium (3–4 hidden systems) ─────────────────────────
+  e11: { Compliance: 2, Quality: 2, Export: 1 }, // Pharmaceutical Packaging — strictest gate
+  e12: { Power: 1, Quality: 2, Green: 2, Cluster: 1 }, // Solar Panel Assembly — green transition
 };
 
 /* ── Hidden layer helpers ─────────────────────────────────── */
@@ -502,6 +502,18 @@ function canAffordEnterprise(enterprise) {
     ([system, needed]) => (hiddenState[system] || 0) >= needed
   );
   return visibleOk && hiddenOk;
+}
+
+// Returns { system: shortfall } for any unmet hidden requirement.
+// Hidden systems are not spent on attraction — gating only.
+function getEnterpriseHiddenShortfalls(enterpriseId) {
+  const req = ENTERPRISE_HIDDEN_REQUIREMENTS[enterpriseId] || {};
+  const shortfalls = {};
+  Object.entries(req).forEach(([system, needed]) => {
+    const current = hiddenState[system] || 0;
+    if (current < needed) shortfalls[system] = needed - current;
+  });
+  return shortfalls;
 }
 
 function checkSuiteCompletion() {
