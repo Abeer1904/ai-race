@@ -333,6 +333,7 @@ const els = {
   waterValue: document.getElementById("waterValue"),
   electricityBar: document.getElementById("electricityBar"),
   electricityValue: document.getElementById("electricityValue"),
+  budgetChip: document.getElementById("budgetChip"),
   tileCount: document.getElementById("tileCount"),
   pollutionCount: document.getElementById("pollutionCount"),
   solutionCount: document.getElementById("solutionCount"),
@@ -1175,6 +1176,16 @@ function render() {
     els[`${id}Bar`].style.width = `${clamp(v, 0, 100)}%`;
     els[`${id}Value`].textContent = Math.round(v);
   });
+
+  // Budget chip — round budget net of tile maintenance and revenue
+  const _econ = computeCityEconomics(state.city);
+  const _available = state.cityFinance.round_budget + _econ.netBudgetImpact;
+  const _crore = v => `₹${(v / 10000000).toFixed(2)} Cr`;
+  if (els.budgetChip) {
+    els.budgetChip.textContent = (_available < 0 ? "-" : "") + _crore(Math.abs(_available));
+    els.budgetChip.style.color = _available < 0 ? "#c96e61" : "";
+    els.budgetChip.title = `Round budget: ${_crore(state.cityFinance.round_budget)}  ·  Revenue: ${_crore(_econ.totalRevenue)}  ·  Maintenance: ${_crore(_econ.totalMaintenance)}`;
+  }
 
   els.tileCount.textContent = Math.max(0, state.city.length - 1);
   els.pollutionCount.textContent = state.city.reduce((sum, tile) => sum + tile.pollutionTokens, 0);
