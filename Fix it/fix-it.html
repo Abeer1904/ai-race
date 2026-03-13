@@ -198,12 +198,19 @@
         <div class="hazard-standalone">
           <div class="hazard-standalone-label">Hazard Mode</div>
           <div class="hazard-toggle">
-            <button id="airToggle" class="hazard-btn active" type="button">
-              <span class="hazard-icon">🌫</span>Air
-            </button>
-            <button id="heatToggle" class="hazard-btn" type="button">
-              <span class="hazard-icon">🌡</span>Heat
-            </button>
+            <!-- Invisible real buttons keep JS wiring intact -->
+            <button id="airToggle" class="hazard-btn active" type="button" aria-label="Air hazard mode"></button>
+            <button id="heatToggle" class="hazard-btn" type="button" aria-label="Heat hazard mode"></button>
+            <!-- Visual pill track -->
+            <div class="hazard-pill-track" id="hazardPillTrack">
+              <div class="hazard-pill-slider"></div>
+              <div class="hazard-pill-option" data-mode="air">
+                <span class="hazard-icon">🌫</span><span>Air</span>
+              </div>
+              <div class="hazard-pill-option" data-mode="heat">
+                <span class="hazard-icon">🌡</span><span>Heat</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -311,64 +318,73 @@
 
           <!-- Status counters — 2×2 grid -->
           <div class="status-grid">
-            <div class="tag-card">
-              <div class="label">City Tiles</div>
+            <div class="tag-card expandable" data-detail="Total tiles built and placed on the city board this game.">
+              <div class="label">City Tiles <span class="expand-caret">›</span></div>
               <div class="value" id="tileCount">0</div>
+              <div class="tag-card-detail">Each tile shifts AQI, development, and service pressures when placed.</div>
             </div>
-            <div class="tag-card">
-              <div class="label">Pollution Tokens</div>
+            <div class="tag-card expandable" data-detail="Pollution tokens accumulate each time a hazard card fires.">
+              <div class="label">Pollution Tokens <span class="expand-caret">›</span></div>
               <div class="value" id="pollutionCount">0</div>
+              <div class="tag-card-detail">Too many tokens with no solutions means the city starts degrading faster.</div>
             </div>
-            <div class="tag-card">
-              <div class="label">Solution Tokens</div>
+            <div class="tag-card expandable" data-detail="Solutions you've committed to counter pollution or heat events.">
+              <div class="label">Solution Tokens <span class="expand-caret">›</span></div>
               <div class="value" id="solutionCount">0</div>
+              <div class="tag-card-detail">Each solution offsets a pollution token and shifts AQI or heat stress.</div>
             </div>
-            <div class="tag-card">
-              <div class="label">Infra Flipped</div>
+            <div class="tag-card expandable" data-detail="Infrastructure tiles that flipped to degraded state under pressure.">
+              <div class="label">Infra Flipped <span class="expand-caret">›</span></div>
               <div class="value" id="flippedCount">0</div>
+              <div class="tag-card-detail">Flipped tiles reverse their benefits — jobs, power, water — until fixed.</div>
             </div>
           </div>
 
           <!-- Compact pressure meters -->
           <div class="meters-compact">
             <div class="meter-row">
-              <div class="meter-item">
+              <div class="meter-item expandable">
                 <div class="meter-item-head">
-                  <span class="meter-item-label">Development</span>
+                  <span class="meter-item-label">Development <span class="expand-caret">›</span></span>
                   <strong id="devValue" class="meter-item-value">0</strong>
                 </div>
                 <div class="bar good"><span id="devBar"></span></div>
+                <div class="meter-detail">Cumulative score from all tiles placed. Affects ideology reveal and win conditions.</div>
               </div>
-              <div class="meter-item">
+              <div class="meter-item expandable">
                 <div class="meter-item-head">
-                  <span class="meter-item-label">Unemployment</span>
+                  <span class="meter-item-label">Unemployment <span class="expand-caret">›</span></span>
                   <strong id="jobsValue" class="meter-item-value">0</strong>
                 </div>
                 <div class="bar neutral"><span id="jobsBar"></span></div>
+                <div class="meter-detail">Reduced by tiles with jobs. If it hits 100 the city destabilises.</div>
               </div>
             </div>
             <div class="meter-row">
-              <div class="meter-item">
+              <div class="meter-item expandable">
                 <div class="meter-item-head">
-                  <span class="meter-item-label">Migration</span>
+                  <span class="meter-item-label">Migration <span class="expand-caret">›</span></span>
                   <strong id="migrationValue" class="meter-item-value">0</strong>
                 </div>
                 <div class="bar neutral"><span id="migrationBar"></span></div>
+                <div class="meter-detail">Housing tiles reduce this. High migration strains water and electricity.</div>
               </div>
-              <div class="meter-item">
+              <div class="meter-item expandable">
                 <div class="meter-item-head">
-                  <span class="meter-item-label">Water Stress</span>
+                  <span class="meter-item-label">Water Stress <span class="expand-caret">›</span></span>
                   <strong id="waterValue" class="meter-item-value">0</strong>
                 </div>
                 <div class="bar neutral"><span id="waterBar"></span></div>
+                <div class="meter-detail">Industry and housing increase this. Water infrastructure tiles reduce it.</div>
               </div>
             </div>
-            <div class="meter-item meter-item-full">
+            <div class="meter-item meter-item-full expandable">
               <div class="meter-item-head">
-                <span class="meter-item-label">Electricity Stress</span>
+                <span class="meter-item-label">Electricity Stress <span class="expand-caret">›</span></span>
                 <strong id="electricityValue" class="meter-item-value">0</strong>
               </div>
               <div class="bar neutral"><span id="electricityBar"></span></div>
+              <div class="meter-detail">Power plants and solar tiles reduce this. Housing tiles increase it with demand.</div>
             </div>
           </div>
 
@@ -618,12 +634,56 @@
       }
     }
 
+    /* ── Sliding Pill Hazard Toggle ── */
+    function initPillTrack() {
+      const track = document.getElementById('hazardPillTrack');
+      if (!track) return;
+      const airBtn  = document.getElementById('airToggle');
+      const heatBtn = document.getElementById('heatToggle');
+
+      function syncPill(mode) {
+        track.dataset.mode = mode;
+      }
+      syncPill('air'); // initial
+
+      const observer = new MutationObserver(() => {
+        syncPill(airBtn.classList.contains('active') ? 'air' : 'heat');
+      });
+      observer.observe(airBtn,  { attributes: true, attributeFilter: ['class'] });
+      observer.observe(heatBtn, { attributes: true, attributeFilter: ['class'] });
+
+      track.querySelectorAll('.hazard-pill-option').forEach(opt => {
+        opt.addEventListener('click', () => {
+          document.getElementById(opt.dataset.mode + 'Toggle').click();
+        });
+      });
+    }
+
+    /* ── Expandable Metric Cards ── */
+    function initExpandables() {
+      document.querySelectorAll('.tag-card.expandable, .meter-item.expandable').forEach(card => {
+        card.addEventListener('click', (e) => {
+          if (e.target.closest('button, input, a')) return;
+          const wasOpen = card.classList.contains('open');
+          const siblings = card.closest('.status-grid, .meter-row, .meters-compact');
+          if (siblings) {
+            siblings.querySelectorAll('.tag-card.expandable.open, .meter-item.expandable.open').forEach(c => {
+              if (c !== card) c.classList.remove('open');
+            });
+          }
+          card.classList.toggle('open', !wasOpen);
+        });
+      });
+    }
+
     startGameBtn.addEventListener('click', () => {
       startupOverlay.classList.add('fade-out');
       startupOverlay.addEventListener('animationend', () => {
         startupOverlay.style.display = 'none';
         gameShell.style.display = 'block';
         initConsoleTabs();
+        initPillTrack();
+        initExpandables();
       }, { once: true });
     });
 
