@@ -464,6 +464,104 @@ const POLICY_TEMP_PRODUCT_SUPPORT = {
   s3_01: { grants: { PackagingMaterials: 1 }, duration: "round" },
 };
 
+/* ══════════════════════════════════════════════════════════════
+   ENTERPRISE UPGRADE PATHS
+   Products become upgrade inputs, not just saleables.
+   upgradesTo: replaces the enterprise card in state.enterprises
+   upgradesTo: null: applies bonuses in-place via state.enterpriseUpgrades
+   ══════════════════════════════════════════════════════════════ */
+
+const ENTERPRISE_UPGRADE_PATHS = {
+  e01: {
+    // Spice Grinding Unit → Organic Food Processing
+    upgradesTo: "e09",
+    foundationCost: { finance: 2, workforce: 1 },
+    hiddenRequirements: { Compliance: 1, Quality: 1, Market: 1 },
+    productRequirements: { ProcessedFood: 3, PackagingMaterials: 1 },
+    effect: { yieldBonus: 1, competitivenessBonus: 1 },
+  },
+  e05: {
+    // Papad Manufacturing Unit → Organic Food Processing
+    upgradesTo: "e09",
+    foundationCost: { finance: 2, workforce: 1 },
+    hiddenRequirements: { Compliance: 1, Quality: 1, Market: 1 },
+    productRequirements: { ProcessedFood: 3, PackagingMaterials: 1 },
+    effect: { yieldBonus: 1, competitivenessBonus: 1 },
+  },
+  e02: {
+    // Handloom Weaving Cooperative → Garment Export Unit
+    upgradesTo: "e10",
+    foundationCost: { finance: 2, workforce: 1, infra: 1 },
+    hiddenRequirements: { Quality: 1, Market: 1, Export: 1 },
+    productRequirements: { Textiles: 3 },
+    effect: { yieldBonus: 1, competitivenessBonus: 1 },
+  },
+  e06: {
+    // Bamboo Furniture Workshop → premium craft/export path
+    upgradesTo: "e10",
+    foundationCost: { finance: 2, entrep: 1 },
+    hiddenRequirements: { Market: 1, Quality: 1, Export: 1 },
+    productRequirements: { CraftGoods: 3 },
+    effect: { yieldBonus: 1, competitivenessBonus: 1 },
+  },
+  e03: {
+    // Street Food Cart Cluster → Organic Food Processing
+    upgradesTo: "e09",
+    foundationCost: { finance: 2, infra: 1 },
+    hiddenRequirements: { Compliance: 1, Market: 1 },
+    productRequirements: { BusinessServices: 2, PackagingMaterials: 1 },
+    effect: { yieldBonus: 1, outputBonus: 1 },
+  },
+  e04: {
+    // Mobile Phone Repair Hub → Cold Chain/Logistics service deepening
+    upgradesTo: "e07",
+    foundationCost: { finance: 2, innovation: 1 },
+    hiddenRequirements: { Digital: 1, Quality: 1, Logistics: 1 },
+    productRequirements: { BusinessServices: 3 },
+    effect: { yieldBonus: 1, competitivenessBonus: 1 },
+  },
+  e08: {
+    // Auto Parts Fabrication → Solar Panel Assembly Plant
+    upgradesTo: "e12",
+    foundationCost: { finance: 3, infra: 1, innovation: 1 },
+    hiddenRequirements: { Quality: 2, Green: 1, Cluster: 1 },
+    productRequirements: { IndustrialComponents: 3 },
+    effect: { yieldBonus: 1, competitivenessBonus: 1 },
+  },
+  e09: {
+    // Organic Food Processing → higher-value packaged food (in-place scale)
+    upgradesTo: null,
+    foundationCost: { finance: 2, entrep: 1 },
+    hiddenRequirements: { Market: 1, Quality: 1 },
+    productRequirements: { ProcessedFood: 4, PackagingMaterials: 2 },
+    effect: { yieldBonus: 1, sellValueBonus: 1, competitivenessBonus: 1 },
+  },
+  e10: {
+    // Garment Export Unit → scale export state (in-place)
+    upgradesTo: null,
+    foundationCost: { finance: 2, workforce: 1 },
+    hiddenRequirements: { Export: 1, Quality: 1, Market: 1 },
+    productRequirements: { Textiles: 4 },
+    effect: { yieldBonus: 1, sellValueBonus: 1, competitivenessBonus: 1 },
+  },
+  e11: {
+    // Pharmaceutical Packaging → scale pharma state (in-place)
+    upgradesTo: null,
+    foundationCost: { finance: 3, innovation: 1 },
+    hiddenRequirements: { Compliance: 2, Quality: 2, Export: 1 },
+    productRequirements: { MedicalSupplies: 4, PackagingMaterials: 2 },
+    effect: { yieldBonus: 1, sellValueBonus: 1, competitivenessBonus: 2 },
+  },
+  e12: {
+    // Solar Panel Assembly Plant → scale clean-tech state (in-place)
+    upgradesTo: null,
+    foundationCost: { finance: 3, innovation: 1, infra: 1 },
+    hiddenRequirements: { Green: 2, Quality: 2, Cluster: 1 },
+    productRequirements: { MachineParts: 4 },
+    effect: { yieldBonus: 1, sellValueBonus: 1, competitivenessBonus: 2 },
+  },
+};
+
 /* ── State ────────────────────────────────────────────────── */
 
 const state = {
@@ -484,6 +582,7 @@ const state = {
   log: [],                    // round-by-round log entries
   economy: { employment: 1, output: 1, competitiveness: 0 }, // economy tracks
   tempProductSupport: { PackagingMaterials: 0 },              // policy-driven per-round product bridge
+  enterpriseUpgrades: {},                                     // in-place bonus accumulator keyed by enterpriseId
 };
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -630,10 +729,17 @@ function getLinkedBonus(meta) {
   return 0;
 }
 
+function getEnterpriseUpgradeBonus(enterpriseId) {
+  return state.enterpriseUpgrades?.[enterpriseId] || {
+    yieldBonus: 0, sellValueBonus: 0, outputBonus: 0, competitivenessBonus: 0
+  };
+}
+
 function produceFromEnterprise(enterprise) {
   const meta = ENTERPRISE_PRODUCT_OUTPUTS[enterprise.id];
   if (!meta) return null;
-  const totalYield = meta.yield + getLinkedBonus(meta);
+  const bonus = getEnterpriseUpgradeBonus(enterprise.id);
+  const totalYield = meta.yield + getLinkedBonus(meta) + (bonus.yieldBonus || 0);
   productState[meta.product] = (productState[meta.product] || 0) + totalYield;
   return { enterpriseId: enterprise.id, enterpriseName: enterprise.name, product: meta.product, amount: totalYield };
 }
@@ -649,6 +755,13 @@ function runProductionPhase() {
 function getProductSellValue(productType) {
   const found = Object.values(ENTERPRISE_PRODUCT_OUTPUTS).find(m => m.product === productType);
   return found?.sellValue || 1;
+}
+
+function getEnterpriseSellValue(enterpriseId) {
+  const meta = ENTERPRISE_PRODUCT_OUTPUTS[enterpriseId];
+  if (!meta) return 1;
+  const bonus = getEnterpriseUpgradeBonus(enterpriseId);
+  return meta.sellValue + (bonus.sellValueBonus || 0);
 }
 
 function sellProduct(productType, amount = 1) {
@@ -679,13 +792,131 @@ function consumeProduct(productType, amount) {
 function applyEnterpriseEconomyImpact(enterprise) {
   const meta = ENTERPRISE_PRODUCT_OUTPUTS[enterprise.id];
   if (!meta?.economy) return;
-  state.economy.employment     += meta.economy.employment     || 0;
-  state.economy.output         += meta.economy.output         || 0;
-  state.economy.competitiveness+= meta.economy.competitiveness|| 0;
+  const bonus = getEnterpriseUpgradeBonus(enterprise.id);
+  state.economy.employment     += meta.economy.employment                                    || 0;
+  state.economy.output         += (meta.economy.output         || 0) + (bonus.outputBonus          || 0);
+  state.economy.competitiveness+= (meta.economy.competitiveness|| 0) + (bonus.competitivenessBonus || 0);
 }
 
 function runEconomyPhase() {
   state.enterprises.forEach(applyEnterpriseEconomyImpact);
+}
+
+/* ── Upgrade helpers ─────────────────────────────────────── */
+
+function hasFoundationCost(costObj = {}) {
+  return Object.entries(costObj).every(([pillar, needed]) =>
+    (state.bars[pillar] || 0) >= needed
+  );
+}
+
+function payFoundationCost(costObj = {}) {
+  Object.entries(costObj).forEach(([pillar, needed]) => {
+    state.bars[pillar] = Math.max(0, (state.bars[pillar] || 0) - needed);
+  });
+}
+
+function hasHiddenRequirements(reqObj = {}) {
+  return Object.entries(reqObj).every(([system, needed]) =>
+    (hiddenState[system] || 0) >= needed
+  );
+}
+
+function hasProductRequirements(reqObj = {}) {
+  return Object.entries(reqObj).every(([product, needed]) =>
+    getAvailableProduct(product) >= needed
+  );
+}
+
+function canUpgradeEnterprise(enterpriseId) {
+  const upgrade = ENTERPRISE_UPGRADE_PATHS[enterpriseId];
+  if (!upgrade) return false;
+  return (
+    hasFoundationCost(upgrade.foundationCost) &&
+    hasHiddenRequirements(upgrade.hiddenRequirements) &&
+    hasProductRequirements(upgrade.productRequirements)
+  );
+}
+
+function consumeProductRequirements(reqObj = {}) {
+  // consume each product; returns true only if all requirements were fully met
+  return Object.entries(reqObj).every(([product, needed]) =>
+    consumeProduct(product, needed)
+  );
+}
+
+function applyEnterpriseUpgrade(enterpriseId) {
+  const upgrade = ENTERPRISE_UPGRADE_PATHS[enterpriseId];
+  if (!upgrade) return false;
+  if (!canUpgradeEnterprise(enterpriseId)) return false;
+
+  payFoundationCost(upgrade.foundationCost);
+  consumeProductRequirements(upgrade.productRequirements);
+
+  const idx = state.enterprises.findIndex(e => e.id === enterpriseId);
+  if (idx === -1) return false;
+
+  if (upgrade.upgradesTo) {
+    // Card-replacement upgrade: swap enterprise card in state
+    const next = ENTERPRISES.find(e => e.id === upgrade.upgradesTo);
+    if (!next) return false;
+    state.enterprises[idx] = structuredClone(next);
+  } else {
+    // In-place upgrade: accumulate bonuses
+    if (!state.enterpriseUpgrades[enterpriseId]) {
+      state.enterpriseUpgrades[enterpriseId] = {
+        yieldBonus: 0, sellValueBonus: 0, outputBonus: 0, competitivenessBonus: 0
+      };
+    }
+    Object.entries(upgrade.effect || {}).forEach(([key, val]) => {
+      state.enterpriseUpgrades[enterpriseId][key] =
+        (state.enterpriseUpgrades[enterpriseId][key] || 0) + val;
+    });
+  }
+  return true;
+}
+
+/* ── Soft-lock messages ──────────────────────────────────── */
+// Human-readable explanations for why an upgrade is blocked.
+// Maps hidden system names to player-facing hints.
+const UPGRADE_BLOCK_MESSAGES = {
+  Compliance:  "Needs a stronger compliance ecosystem",
+  Quality:     "Needs quality certification readiness",
+  Market:      "Needs market linkage development",
+  Export:      "Needs export readiness",
+  Digital:     "Needs digital infrastructure",
+  Logistics:   "Needs logistics connectivity",
+  Cluster:     "Needs industrial cluster formation",
+  Green:       "Needs green technology adoption",
+  Credit:      "Needs credit access",
+  Power:       "Needs reliable power supply",
+};
+
+function getUpgradeBlockReasons(enterpriseId) {
+  const upgrade = ENTERPRISE_UPGRADE_PATHS[enterpriseId];
+  if (!upgrade) return [];
+  const reasons = [];
+
+  // Foundation bar shortfalls
+  Object.entries(upgrade.foundationCost || {}).forEach(([pillar, needed]) => {
+    if ((state.bars[pillar] || 0) < needed)
+      reasons.push(`Needs more ${pillar} foundation (${needed - (state.bars[pillar] || 0)} more)`);
+  });
+
+  // Hidden system shortfalls → soft messages
+  Object.entries(upgrade.hiddenRequirements || {}).forEach(([system, needed]) => {
+    if ((hiddenState[system] || 0) < needed)
+      reasons.push(UPGRADE_BLOCK_MESSAGES[system] || `Needs ${system} readiness`);
+  });
+
+  // Product shortfalls
+  Object.entries(upgrade.productRequirements || {}).forEach(([product, needed]) => {
+    const available = getAvailableProduct(product);
+    if (available < needed)
+      reasons.push(`Needs ${needed - available} more ${product}`);
+  });
+
+  return reasons;
 }
 
 /* ── Temporary product support helpers ───────────────────── */
