@@ -422,6 +422,48 @@ const ENTERPRISES = [
     cost:{finance:12, workforce:10, infra:11, innovation:11, entrep:7}, maintenance:4 },
 ];
 
+/* ══════════════════════════════════════════════════════════════
+   PRODUCT OUTPUT LAYER
+   Visible product economy. productState accumulates each round;
+   sales convert products back into finance. Economy tracks shift
+   after production, not before.
+   ══════════════════════════════════════════════════════════════ */
+
+const PRODUCT_TYPES = [
+  "ProcessedFood", "Textiles", "PlasticGoods", "IndustrialComponents",
+  "MachineParts", "CraftGoods", "MedicalSupplies", "RecycledMaterial",
+  "PackagingMaterials", "BusinessServices"
+];
+
+const productState = {
+  ProcessedFood: 0, Textiles: 0, PlasticGoods: 0, IndustrialComponents: 0,
+  MachineParts: 0, CraftGoods: 0, MedicalSupplies: 0, RecycledMaterial: 0,
+  PackagingMaterials: 0, BusinessServices: 0
+};
+
+const ENTERPRISE_PRODUCT_OUTPUTS = {
+  e01: { product:"ProcessedFood",       yield:2, sellValue:2, economy:{employment:1,output:1,competitiveness:0}, linkedBonus:{requiresProduct:"PackagingMaterials", bonusYield:1} },
+  e02: { product:"Textiles",            yield:2, sellValue:2, economy:{employment:1,output:0,competitiveness:1}, linkedBonus:{requiresHidden:"Market",              bonusYield:1} },
+  e03: { product:"BusinessServices",    yield:2, sellValue:2, economy:{employment:1,output:1,competitiveness:0}, linkedBonus:{requiresHidden:"Compliance",          bonusYield:1} },
+  e04: { product:"BusinessServices",    yield:2, sellValue:3, economy:{employment:1,output:0,competitiveness:1}, linkedBonus:{requiresHidden:"Digital",             bonusYield:1} },
+  e05: { product:"ProcessedFood",       yield:2, sellValue:2, economy:{employment:1,output:1,competitiveness:0}, linkedBonus:{requiresProduct:"PackagingMaterials", bonusYield:1} },
+  e06: { product:"CraftGoods",          yield:2, sellValue:3, economy:{employment:1,output:0,competitiveness:1}, linkedBonus:{requiresHidden:"Market",              bonusYield:1} },
+  e07: { product:"BusinessServices",    yield:2, sellValue:3, economy:{employment:1,output:1,competitiveness:1}, linkedBonus:{requiresSectorActive:"Agro-processing", bonusYield:1} },
+  e08: { product:"IndustrialComponents",yield:2, sellValue:3, economy:{employment:1,output:2,competitiveness:1}, linkedBonus:{requiresHidden:"Cluster",             bonusYield:1} },
+  e09: { product:"ProcessedFood",       yield:3, sellValue:3, economy:{employment:1,output:2,competitiveness:1}, linkedBonus:{requiresProduct:"PackagingMaterials", bonusYield:1} },
+  e10: { product:"Textiles",            yield:3, sellValue:3, economy:{employment:2,output:1,competitiveness:1}, linkedBonus:{requiresHidden:"Export",              bonusYield:1} },
+  e11: { product:"MedicalSupplies",     yield:3, sellValue:4, economy:{employment:1,output:2,competitiveness:2}, linkedBonus:{requiresProduct:"PackagingMaterials", bonusYield:1} },
+  e12: { product:"MachineParts",        yield:3, sellValue:4, economy:{employment:1,output:2,competitiveness:2}, linkedBonus:{requiresHidden:"Green",               bonusYield:1} },
+};
+
+/* ── Temporary product support from policies ─────────────── */
+// PackagingMaterials has no dedicated enterprise yet;
+// s2_15 and s3_01 bridge that gap for one round when pushed.
+const POLICY_TEMP_PRODUCT_SUPPORT = {
+  s2_15: { grants: { PackagingMaterials: 2 }, duration: "round" },
+  s3_01: { grants: { PackagingMaterials: 1 }, duration: "round" },
+};
+
 /* ── State ────────────────────────────────────────────────── */
 
 const state = {
@@ -440,6 +482,8 @@ const state = {
   marketPool: [],             // 10 cards drawn for this round
   selectedPolicy: null,       // currently tapped card in market
   log: [],                    // round-by-round log entries
+  economy: { employment: 1, output: 1, competitiveness: 0 }, // economy tracks
+  tempProductSupport: { PackagingMaterials: 0 },              // policy-driven per-round product bridge
 };
 
 /* ── Helpers ─────────────────────────────────────────────── */
@@ -563,6 +607,101 @@ function applyPassiveIncome() {
   return income;
 }
 
+/* ── Production helpers ──────────────────────────────────── */
+
+function getEnterpriseProductMeta(enterpriseId) {
+  return ENTERPRISE_PRODUCT_OUTPUTS[enterpriseId] || null;
+}
+
+function isSectorActive(sectorName) {
+  return state.enterprises.some(e => e.sector === sectorName);
+}
+
+function getAvailableProduct(productType) {
+  return (productState[productType] || 0) + (state.tempProductSupport[productType] || 0);
+}
+
+function getLinkedBonus(meta) {
+  if (!meta?.linkedBonus) return 0;
+  const lb = meta.linkedBonus;
+  if (lb.requiresProduct)      return getAvailableProduct(lb.requiresProduct) > 0 ? (lb.bonusYield || 0) : 0;
+  if (lb.requiresHidden)       return (hiddenState[lb.requiresHidden] || 0)    > 0 ? (lb.bonusYield || 0) : 0;
+  if (lb.requiresSectorActive) return isSectorActive(lb.requiresSectorActive)  ?     (lb.bonusYield || 0) : 0;
+  return 0;
+}
+
+function produceFromEnterprise(enterprise) {
+  const meta = ENTERPRISE_PRODUCT_OUTPUTS[enterprise.id];
+  if (!meta) return null;
+  const totalYield = meta.yield + getLinkedBonus(meta);
+  productState[meta.product] = (productState[meta.product] || 0) + totalYield;
+  return { enterpriseId: enterprise.id, enterpriseName: enterprise.name, product: meta.product, amount: totalYield };
+}
+
+function runProductionPhase() {
+  const log = [];
+  state.enterprises.forEach(e => { const r = produceFromEnterprise(e); if (r) log.push(r); });
+  return log;
+}
+
+/* ── Sales helpers ───────────────────────────────────────── */
+
+function getProductSellValue(productType) {
+  const found = Object.values(ENTERPRISE_PRODUCT_OUTPUTS).find(m => m.product === productType);
+  return found?.sellValue || 1;
+}
+
+function sellProduct(productType, amount = 1) {
+  const available = productState[productType] || 0;
+  const sellAmount = Math.min(amount, available);
+  if (sellAmount <= 0) return 0;
+  const total = sellAmount * getProductSellValue(productType);
+  productState[productType] -= sellAmount;
+  state.bars.finance = clamp((state.bars.finance || 0) + total, 0, MAX_BAR);
+  return total;
+}
+
+function consumeProduct(productType, amount) {
+  let remaining = amount;
+  const fromPermanent = Math.min(productState[productType] || 0, remaining);
+  productState[productType] = (productState[productType] || 0) - fromPermanent;
+  remaining -= fromPermanent;
+  if (remaining > 0) {
+    const fromTemp = Math.min(state.tempProductSupport[productType] || 0, remaining);
+    state.tempProductSupport[productType] = (state.tempProductSupport[productType] || 0) - fromTemp;
+    remaining -= fromTemp;
+  }
+  return remaining === 0;
+}
+
+/* ── Economy track helpers ───────────────────────────────── */
+
+function applyEnterpriseEconomyImpact(enterprise) {
+  const meta = ENTERPRISE_PRODUCT_OUTPUTS[enterprise.id];
+  if (!meta?.economy) return;
+  state.economy.employment     += meta.economy.employment     || 0;
+  state.economy.output         += meta.economy.output         || 0;
+  state.economy.competitiveness+= meta.economy.competitiveness|| 0;
+}
+
+function runEconomyPhase() {
+  state.enterprises.forEach(applyEnterpriseEconomyImpact);
+}
+
+/* ── Temporary product support helpers ───────────────────── */
+
+function applyTemporaryProductSupport(policyId) {
+  const support = POLICY_TEMP_PRODUCT_SUPPORT[policyId];
+  if (!support?.grants) return;
+  Object.entries(support.grants).forEach(([product, amount]) => {
+    state.tempProductSupport[product] = (state.tempProductSupport[product] || 0) + amount;
+  });
+}
+
+function clearTemporaryProductSupport() {
+  Object.keys(state.tempProductSupport).forEach(k => { state.tempProductSupport[k] = 0; });
+}
+
 function pushPolicy(policyId) {
   if (state.roundPushes.length >= POLICIES_PER_ROUND) return false;
   if (state.pushedPolicies.includes(policyId)) return false;
@@ -577,6 +716,8 @@ function pushPolicy(policyId) {
 
   // Apply hidden system accumulation
   applyHiddenPolicy(policyId);
+  // Apply any temporary product support this policy grants
+  applyTemporaryProductSupport(policyId);
 
   state.pushedPolicies.push(policyId);
   state.roundPushes.push(policyId);
@@ -602,18 +743,24 @@ function attractEnterprise(enterpriseId) {
 }
 
 function endRound() {
-  // 1. Apply passive income from ecosystem
+  // 1. Run production phase (enterprise outputs → productState)
+  const productionLog = runProductionPhase();
+  // 2. Apply economy track shifts (after production)
+  runEconomyPhase();
+  // 3. Apply passive income from ecosystem
   const income = applyPassiveIncome();
-  // 2. Apply maintenance drain
+  // 4. Apply maintenance drain
   const maintenance = applyMaintenance();
-  // 3. Check suite completions
+  // 5. Check suite completions
   const newSuites = checkSuiteCompletion();
   newSuites.forEach(suite => {
     Object.entries(suite.bonus).forEach(([pillar, val]) => {
       state.bars[pillar] = clamp((state.bars[pillar] || 0) + val, 0, MAX_BAR);
     });
   });
-  // 4. Log
+  // 6. Clear per-round temporary product support
+  clearTemporaryProductSupport();
+  // 7. Log
   state.log.push({
     round: state.round,
     sector: SECTORS[state.round - 1],
@@ -622,9 +769,11 @@ function endRound() {
     maintenance,
     income,
     newSuites: newSuites.map(s => s.name),
+    productionLog,
+    economyAfter: { ...state.economy },
     barsAfter: { ...state.bars },
   });
-  // 5. Advance round
+  // 8. Advance round
   state.round++;
   state.roundPushes = [];
   state.roundAttraction = null;
